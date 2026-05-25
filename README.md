@@ -225,28 +225,90 @@ npm run dev
 
 ---
 
-# 📂 Folder Structure
+# 📂 Project Folder Structure
 
 ```bash
-JurisAI/
+juris-ai/
 │
-├── frontend/
-│   ├── src/
-│   ├── components/
-│   ├── pages/
-│   └── assets/
+├── app/                         # Next.js App Router
+│   ├── (auth)/                  # Authentication routes
+│   ├── (dashboard)/             # Protected dashboard routes
+│   ├── api/                     # API route handlers
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
 │
-├── backend/
-│   ├── routes/
-│   ├── controllers/
-│   ├── models/
-│   └── middleware/
+├── components/                  # Reusable UI components
+│   ├── ui/                      # shadcn/ui components
+│   ├── shared/                  # Shared components
+│   ├── layout/                  # Navbar, Sidebar, Footer
+│   ├── chat/                    # Chat related components
+│   └── forms/                   # Form components
 │
-├── database/
+├── features/                    # Feature-based modules
+│   ├── auth/
+│   ├── chatbot/
+│   ├── voice-assistant/
+│   ├── legal-search/
+│   ├── document-analysis/
+│   └── user-dashboard/
 │
+├── ai/                          # AI logic & prompt engineering
+│   ├── prompts/
+│   ├── chains/
+│   ├── embeddings/
+│   ├── translators/
+│   └── speech/
+│
+├── services/                    # External/API services
+│   ├── openai/
+│   ├── auth/
+│   ├── storage/
+│   └── analytics/
+│
+├── lib/                         # Utility libraries & configs
+│   ├── prisma.ts
+│   ├── db.ts
+│   ├── utils.ts
+│   ├── validators.ts
+│   └── constants.ts
+│
+├── hooks/                       # Custom React hooks
+│
+├── store/                       # Zustand state management
+│
+├── prisma/                      # Prisma schema & migrations
+│   ├── schema.prisma
+│   └── migrations/
+│
+├── types/                       # Global TypeScript types
+│
+├── config/                      # App configuration
+│
+├── middleware/                  # Middleware logic
+│
+├── public/                      # Static assets
+│   ├── images/
+│   ├── icons/
+│   └── fonts/
+│
+├── styles/                      # Additional styling files
+│
+├── tests/                       # Testing setup
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+│
+├── docs/                        # Project documentation
+│
+├── .env
+├── .env.local
+├── next.config.ts
+├── tailwind.config.ts
+├── tsconfig.json
+├── package.json
 └── README.md
 ```
-
 ---
 
 # 👩‍💻 Developer Information
