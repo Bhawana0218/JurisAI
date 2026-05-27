@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//////////////////////////////
+// ENUMS
+//////////////////////////////
+
+enum Role {
+  USER
+  LAWYER
+  ADMIN
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum ChatVisibility {
+  PRIVATE
+  PUBLIC
+}
+
+enum DocumentStatus {
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum AIModel {
+  GPT_4
+  GPT_4_TURBO
+  GPT_4_1_MINI
+}
+
+//////////////////////////////
+// USER
+//////////////////////////////
+
+model User {
+  id String @id @default(cuid())
+
+  name     String?
+  email    String  @unique
+  password String
+
+  image String?
+  bio   String?
+
+  role Role @default(USER)
+
+  isVerified Boolean @default(false)
+  isBlocked  Boolean @default(false)
+
+  lastLoginAt DateTime?
+
+  chats     Chat[]
+  documents Document[]
+  sessions  Session[]
+
+  aiUsageLogs AIUsageLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+//////////////////////////////
+// SESSION
+//////////////////////////////
+
+model Session {
+  id String @id @default(cuid())
+
+  token String @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+}
+
+//////////////////////////////
+// CHAT
+//////////////////////////////
+
+model Chat {
+  id String @id @default(cuid())
+
+  title String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  visibility ChatVisibility @default(PRIVATE)
+
+  messages Message[]
+
+  lastMessageAt DateTime?
+
+  isArchived Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+//////////////////////////////
+// MESSAGE
+//////////////////////////////
+
+model Message {
+  id String @id @default(cuid())
+
+  role MessageRole
+
+  content String @db.Text
+
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  modelUsed AIModel?
+
+  tokensUsed Int?
+
+  responseTimeMs Int?
+
+  language String? @default("en")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([chatId])
+  @@index([createdAt])
+}
+
+//////////////////////////////
+// DOCUMENT
+//////////////////////////////
+
+model Document {
+  id String @id @default(cuid())
+
+  title   String
+  fileUrl String
+
+  mimeType String?
+  fileSize Int?
+
+  extractedText String? @db.Text
+
+  status DocumentStatus @default(PROCESSING)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+//////////////////////////////
+// AI KNOWLEDGE BASE
+//////////////////////////////
+
+model LegalKnowledge {
+  id String @id @default(cuid())
+
+  title String
+
+  source   String?
+  category String?
+
+  content String @db.Text
+
+  embeddingId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([category])
+}
+
+//////////////////////////////
+// ANALYTICS
+//////////////////////////////
+
+model AIUsageLog {
+  id String @id @default(cuid())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  model AIModel
+
+  promptTokens     Int
+  completionTokens Int
+
+  totalTokens Int
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
