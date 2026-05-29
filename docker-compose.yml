@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: jurisai
+      POSTGRES_PASSWORD: jurisai_secret
+      POSTGRES_DB: jurisai
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jurisai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://jurisai:jurisai_secret@postgres:5432/jurisai
+      NEXTAUTH_SECRET: local-dev-secret-change-in-production
+      NEXTAUTH_URL: http://localhost:3000
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      INTERNAL_JOBS_SECRET: local-dev-jobs-secret
+      WS_PORT: "3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ws-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    command: npx tsx juris-ai/server/realtime/ws-server.ts
+    environment:
+      WS_PORT: "3001"
+      DATABASE_URL: postgresql://jurisai:jurisai_secret@postgres:5432/jurisai
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:

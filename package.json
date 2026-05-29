@@ -1,0 +1,16 @@
+{
+  "name": "jurisai-platform",
+  "private": true,
+  "workspaces": [
+    "juris-ai",
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=juris-ai",
+    "dev:mobile": "npm run start --workspace=@jurisai/mobile",
+    "dev:ws": "npm run dev:ws --workspace=juris-ai",
+    "build:web": "npm run build --workspace=juris-ai",
+    "test": "npm run test --workspace=juris-ai"
+  }
+}

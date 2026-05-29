@@ -1,315 +1,200 @@
-# ⚖️ JurisAI – AI Powered Multilingual Legal Assistant
+# JurisAI — AI-Powered Legal Intelligence Platform
 
 <div align="center">
 
-## 🚀 Full Stack Development Company Training Project  
-### 🏢 IndiaSpan
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
+[![Prisma](https://img.shields.io/badge/Prisma-7-purple?style=for-the-badge&logo=prisma)](https://www.prisma.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-blue?style=for-the-badge&logo=postgresql)](https://www.postgresql.org)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4.1--mini-green?style=for-the-badge&logo=openai)](https://openai.com)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-teal?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com)
 
-<br/>
-
-<img src="https://img.shields.io/badge/AI-Powered-blue?style=for-the-badge" />
-<img src="https://img.shields.io/badge/Multilingual-Support-green?style=for-the-badge" />
-<img src="https://img.shields.io/badge/Legal-Tech-orange?style=for-the-badge" />
-<img src="https://img.shields.io/badge/Full%20Stack-Project-purple?style=for-the-badge" />
-
-<br/><br/>
-
-### 🌐 Empowering Citizens Through AI-Driven Legal Assistance
+**AI-native legal intelligence platform: chat, documents, case management, and enterprise AI workflows**
 
 </div>
 
 ---
 
-# 📌 Project Introduction
+## Architecture
 
-**JurisAI** is an AI-powered multilingual legal assistant designed to improve legal awareness and access to justice across India. The platform aims to help rural, semi-urban, and marginalized communities understand legal rights and procedures using simple, user-friendly language.
-
-The system leverages Artificial Intelligence, Natural Language Processing, and Speech Technologies to provide legal guidance through both text and voice interaction.
-
----
-
-# ❗ Problem Statement
-
-Many citizens face difficulties understanding legal procedures due to:
-
-- ⚠️ Complex legal terminology  
-- 🌍 Language barriers  
-- 💰 Expensive legal consultation fees  
-- 📚 Lack of legal awareness  
-- 🏘️ Limited access to legal support in underserved communities  
-
-As a result, many individuals are unable to effectively understand or exercise their legal rights.
-
----
-
-# 🎯 Project Objectives
-
-✅ Simplify legal information for common citizens  
-✅ Support multilingual communication  
-✅ Provide voice and text-based legal assistance  
-✅ Increase legal awareness and accessibility  
-✅ Reduce dependency on expensive legal consultations  
-
----
-
-# 💡 Proposed Solution
-
-JurisAI provides chatbot-based legal guidance powered by Artificial Intelligence.
-
-Users can:
-
-- 💬 Ask legal questions through text  
-- 🎤 Use voice-based interaction  
-- 🌐 Communicate in multiple languages  
-- 📖 Receive simplified legal explanations  
-- 🛡️ Access guidance for common legal issues  
-
-The platform acts as a digital legal assistant that improves accessibility and legal literacy.
-
----
-
-# ✨ Key Features
-
-## 🔹 Legal Rights Awareness
-Provides simplified explanations of citizen rights and legal protections.
-
-## 🔹 Complaint Filing Guidance
-Guides users on filing complaints and legal applications.
-
-## 🔹 Cybercrime Reporting Support
-Assists users with cybercrime reporting procedures and safety measures.
-
-## 🔹 Consumer Protection Guidance
-Helps users understand consumer rights and complaint processes.
-
-## 🔹 Domestic Violence Reporting Support
-Provides awareness and guidance for domestic violence reporting.
-
-## 🔹 Legal Documentation Guidance
-Explains legal documents, procedures, and filing steps.
-
----
-
-# 🛠️ Technology Stack
-
-<div align="center">
-
-| Technology | Usage |
-|------------|-------|
-| ⚛️ React.js | Frontend Development |
-| 🌐 HTML5 | Structure & Markup |
-| 🎨 CSS3 | Styling & Responsive UI |
-| 🟢 Node.js | Backend Runtime |
-| 🚀 Express.js | Backend API Framework |
-| 🍃 MongoDB | Database Management |
-| 🤖 GPT Models | AI Legal Assistance |
-| 🤗 Hugging Face Transformers | NLP & Language Processing |
-| 🎤 Speech-to-Text APIs | Voice Recognition |
-| 🔊 Text-to-Speech APIs | Voice Responses |
-
-</div>
-
----
-
-# 🏗️ System Architecture
-
-```text
-User
-   ↓
-Frontend Interface (React.js)
-   ↓
-Backend API (Node.js + Express.js)
-   ↓
-AI Processing Engine
-   ↓
-MongoDB Database
-   ↓
-Response Generation
+```
+JurisAI/
+├── package.json                  # npm workspaces monorepo root
+├── juris-ai/                     # Next.js 16 web application
+│   ├── app/                      # App Router (pages, API routes, layouts)
+│   ├── components/               # React components (shadcn/ui + custom)
+│   ├── features/                 # Domain feature modules
+│   │   ├── auth/                 # Authentication & authorization
+│   │   ├── realtime/             # Real-time presence & typing
+│   │   ├── sync/                 # Offline sync engine
+│   │   └── productivity/        # AI productivity tools
+│   ├── lib/                      # Core libraries
+│   │   ├── rag/                  # RAG engine (embeddings, vector search, chunking)
+│   │   ├── rag/                  # Vector + hybrid search
+│   │   ├── cache/               # Redis caching layer
+│   │   ├── security/            # Rate limiting
+│   │   ├── realtime/            # Event publishing (Redis, SSE, WS)
+│   │   ├── documents/           # Document text extraction
+│   │   └── errors/              # API error handling
+│   ├── ai/                       # AI layer
+│   │   ├── agents/              # Multi-agent orchestrator
+│   │   └── prompts/             # Legal assistant prompts
+│   ├── store/                    # Zustand state management
+│   ├── server/realtime/         # WebSocket server
+│   ├── prisma/                   # Database schema & migrations
+│   └── middleware/               # Auth middleware
+├── apps/mobile/                  # Expo React Native mobile app
+│   ├── app/                      # Screens (Chat, Cases, Tasks, Settings)
+│   ├── hooks/                    # Custom hooks (sync-on-reconnect)
+│   └── stores/                   # Zustand offline-first stores
+├── packages/shared/              # Shared TypeScript package
+│   └── src/
+│       ├── types/               # Shared types
+│       ├── api/                 # API client
+│       └── realtime/            # Protocol definitions
+├── Dockerfile                    # Production Docker image
+└── docker-compose.yml           # Local infrastructure
 ```
 
----
+## Tech Stack
 
-# 📊 Business Model
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | Next.js 16 (App Router) |
+| **Language** | TypeScript 5 (strict mode) |
+| **UI** | Tailwind CSS 4 + shadcn/ui (Radix) |
+| **Database** | PostgreSQL 16 + pgvector |
+| **ORM** | Prisma 7 |
+| **Auth** | NextAuth.js v5 (JWT, credentials) |
+| **AI/LLM** | OpenAI GPT-4.1-mini, text-embedding-3-small |
+| **AI SDK** | Vercel AI SDK v6 |
+| **Vector Search** | pgvector (cosine similarity) + hybrid keyword |
+| **Cache** | Upstash Redis |
+| **Real-time** | SSE + WebSockets + Redis Pub |
+| **Mobile** | Expo React Native 52 |
+| **State** | Zustand + React Query |
+| **Testing** | Vitest + React Testing Library |
+| **Monitoring** | Sentry |
+| **Infrastructure** | Docker, docker-compose |
 
-JurisAI follows a **service provider model** with future opportunities including:
+## Key Features
 
-- 🤝 NGO partnerships  
-- 🏛️ Government legal aid collaborations  
-- 💎 Freemium subscription plans  
-- 🧩 White-label licensing solutions  
+### AI Chat System
+- Multi-agent legal assistant with 9 domain-specialized agents (Cybercrime, Consumer Rights, Employment Law, Women Safety, Court Procedure, Document Review, Legal Research)
+- Real-time streaming responses via AI SDK
+- Chat persistence with PostgreSQL
+- Agent routing based on query intent
 
----
+### RAG Engine (Retrieval-Augmented Generation)
+- Document ingestion pipeline (PDF, DOCX, TXT, MD)
+- Text chunking with configurable overlap
+- OpenAI embeddings (text-embedding-3-small, 1536 dimensions)
+- Hybrid search: vector cosine similarity + keyword scoring
+- Citation-backed responses
 
-# 🌍 Social Impact
+### Enterprise Features
+- Multi-tenant organization support
+- Role-based access control (USER, LAWYER, ADMIN)
+- Organization-level permissions
+- Rate limiting
+- Session management
 
-JurisAI contributes to:
+### Real-Time Collaboration
+- WebSocket server for low-latency messaging
+- SSE fallback for serverless environments
+- Presence tracking (online/away/offline)
+- Typing indicators
+- Redis-backed event publishing
 
-✅ Digital Inclusion  
-✅ Legal Literacy  
-✅ Equal Access to Justice  
-✅ Citizen Empowerment  
-✅ Technology-Driven Social Development  
+### Mobile App (Expo)
+- Native chat interface
+- Offline message queue with sync-on-reconnect
+- Biometric authentication
+- Case and task tracking
+- Push notification ready
 
----
+### Productivity Tools
+- AI-powered note summarization
+- Automated task generation from case descriptions
+- Meeting summary with action items
+- Legal email drafting
 
-# 🇮🇳 Alignment with National Initiatives
+## Getting Started
 
-This project aligns with several Indian government initiatives:
+### Prerequisites
+- Node.js 22+
+- PostgreSQL 16 with pgvector extension
+- OpenAI API key
 
-- 📲 Digital India  
-- 🏛️ e-Governance Initiatives  
-- 🧠 NITI Aayog – Responsible AI for All  
-- 💻 MeitY AI Policy Frameworks  
-
----
-
-# 🚀 Future Scope
-
-Future enhancements may include:
-
-- ⚖️ Court system integration  
-- 📄 AI-powered legal document generation  
-- 📈 Legal analytics and insights  
-- 🌐 Expanded regional language support  
-- 📱 Mobile application deployment  
-- 🧠 Advanced AI legal recommendation systems  
-
----
-
-# 📷 Project Screenshots
-
-> Add your project screenshots here
-
-```md
-📌 Homepage UI  
-📌 Chatbot Interface  
-📌 Voice Assistant Feature  
-📌 Legal Guidance Dashboard  
-```
-
----
-
-# ⚙️ Installation & Setup
-
-## 1️⃣ Clone the Repository
+### Installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/Bhawana0218/JurisAI.git
-```
+cd JurisAI
 
-## 2️⃣ Navigate to Project Directory
-
-```bash
-cd jurisai
-```
-
-## 3️⃣ Install Frontend Dependencies
-
-```bash
+# Install dependencies
 npm install
+
+# Set up environment variables
+cp juris-ai/.env.example juris-ai/.env
+# Edit .env with your credentials
+
+# Run database migrations
+cd juris-ai
+npx prisma migrate deploy
+
+# Start development server
+npm run dev:web
 ```
 
-## 4️⃣ Start Frontend Server
+### Environment Variables
+
+```env
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/jurisai"
+
+# OpenAI
+OPENAI_API_KEY="sk-..."
+
+# Auth
+NEXTAUTH_SECRET="generate-a-secure-secret"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Redis (optional, for real-time features)
+UPSTASH_REDIS_REST_URL="..."
+UPSTASH_REDIS_REST_TOKEN="..."
+
+# Stripe (optional, for billing)
+STRIPE_SECRET_KEY="..."
+STRIPE_WEBHOOK_SECRET="..."
+```
+
+### Docker Deployment
 
 ```bash
-npm start
+docker-compose up -d
 ```
 
-## 5️⃣ Setup Backend
+This starts PostgreSQL (with pgvector), Redis, the Next.js web app, and the WebSocket server.
 
-```bash
-cd backend
-npm install
-npm run dev
-```
+## API Overview
 
----
-
-# 📂 Project Folder Structure
-
-```bash
-juris-ai/
-│
-├── app/                         # Next.js App Router
-│   ├── (auth)/                  # Authentication routes
-│   ├── (dashboard)/             # Protected dashboard routes
-│   ├── api/                     # API route handlers
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-│
-├── components/                  # Reusable UI components
-│   ├── ui/                      # shadcn/ui components
-│   ├── shared/                  # Shared components
-│   ├── layout/                  # Navbar, Sidebar, Footer
-│   ├── chat/                    # Chat related components
-│   └── forms/                   # Form components
-│
-├── features/                    # Feature-based modules
-│   ├── auth/
-│   ├── chatbot/
-│   ├── voice-assistant/
-│   ├── legal-search/
-│   ├── document-analysis/
-│   └── user-dashboard/
-│
-├── ai/                          # AI logic & prompt engineering
-│   ├── prompts/
-│   ├── chains/
-│   ├── embeddings/
-│   ├── translators/
-│   └── speech/
-│
-├── services/                    # External/API services
-│   ├── openai/
-│   ├── auth/
-│   ├── storage/
-│   └── analytics/
-│
-├── lib/                         # Utility libraries & configs
-│   ├── prisma.ts
-│   ├── db.ts
-│   ├── utils.ts
-│   ├── validators.ts
-│   └── constants.ts
-│
-├── hooks/                       # Custom React hooks
-│
-├── store/                       # Zustand state management
-│
-├── prisma/                      # Prisma schema & migrations
-│   ├── schema.prisma
-│   └── migrations/
-│
-├── types/                       # Global TypeScript types
-│
-├── config/                      # App configuration
-│
-├── middleware/                  # Middleware logic
-│
-├── public/                      # Static assets
-│   ├── images/
-│   ├── icons/
-│   └── fonts/
-│
-├── styles/                      # Additional styling files
-│
-├── tests/                       # Testing setup
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-│
-├── docs/                        # Project documentation
-│
-├── .env
-├── .env.local
-├── next.config.ts
-├── tailwind.config.ts
-├── tsconfig.json
-├── package.json
-└── README.md
-```
----
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/*` | GET, POST | NextAuth authentication |
+| `/api/chat` | POST | Streaming chat with RAG |
+| `/api/chats` | GET, POST | List / create conversations |
+| `/api/chats/:id/messages` | GET | Get chat messages |
+| `/api/documents` | GET, POST | Document management + ingestion |
+| `/api/cases` | GET, POST | Legal case tracking |
+| `/api/tasks` | GET, POST, PATCH | Task management |
+| `/api/notes` | GET, POST | AI-powered notes |
+| `/api/analytics` | GET | Platform analytics |
+| `/api/sync` | GET, POST | Offline sync operations |
+| `/api/presence` | GET, POST | User presence |
+| `/api/typing` | POST | Typing indicators |
+| `/api/realtime/stream` | GET | SSE event stream |
 
 # 👩‍💻 Developer Information
 

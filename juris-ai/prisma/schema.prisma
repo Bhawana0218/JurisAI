@@ -1,15 +1,14 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [vector]
 }
 
-//////////////////////////////
-// ENUMS
-//////////////////////////////
-
+// ─── Core enums ───────────────────────────────────────────────
 enum Role {
   USER
   LAWYER
@@ -31,6 +30,7 @@ enum DocumentStatus {
   PROCESSING
   READY
   FAILED
+  INDEXING
 }
 
 enum AIModel {
@@ -39,183 +39,407 @@ enum AIModel {
   GPT_4_1_MINI
 }
 
-//////////////////////////////
-// USER
-//////////////////////////////
+enum AgentType {
+  GENERAL
+  CYBERCRIME
+  CONSUMER_RIGHTS
+  EMPLOYMENT_LAW
+  WOMEN_SAFETY
+  FIR_ASSISTANT
+  LEGAL_RESEARCH
+  DOCUMENT_REVIEW
+  COURT_PROCEDURE
+}
 
+enum SubscriptionPlan {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  TRIALING
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum DevicePlatform {
+  WEB
+  IOS
+  ANDROID
+}
+
+enum PresenceStatus {
+  ONLINE
+  AWAY
+  OFFLINE
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum CaseStatus {
+  OPEN
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum SyncEntityType {
+  MESSAGE
+  CHAT
+  NOTE
+  TASK
+  CASE
+  CALENDAR_EVENT
+}
+
+enum SyncOperationType {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+// ─── User & auth ─────────────────────────────────────────────
 model User {
-  id String @id @default(cuid())
-
+  id       String  @id @default(cuid())
   name     String?
   email    String  @unique
   password String
-
-  image String?
-  bio   String?
-
-  role Role @default(USER)
-
+  image    String?
+  role     Role    @default(USER)
   isVerified Boolean @default(false)
   isBlocked  Boolean @default(false)
-
+  activeOrganizationId String?
+  preferredLanguage    String @default("en")
   lastLoginAt DateTime?
 
-  chats     Chat[]
-  documents Document[]
-  sessions  Session[]
-
+  chats       Chat[]
+  documents   Document[]
+  sessions    Session[]
   aiUsageLogs AIUsageLog[]
+  devices     UserDevice[]
+  presence    UserPresence[]
+  syncOps     SyncOperation[]
+  cases       LegalCase[]
+  tasks       LegalTask[]
+  notes       AINote[]
+  calendarEvents CalendarEvent[]
+  orgMembers  OrganizationMember[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([email])
-  @@index([role])
 }
-
-//////////////////////////////
-// SESSION
-//////////////////////////////
 
 model Session {
-  id String @id @default(cuid())
-
-  token String @unique
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
-
   createdAt DateTime @default(now())
-
-  @@index([token])
 }
 
-//////////////////////////////
-// CHAT
-//////////////////////////////
-
-model Chat {
-  id String @id @default(cuid())
-
-  title String
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  visibility ChatVisibility @default(PRIVATE)
-
-  messages Message[]
-
-  lastMessageAt DateTime?
-
-  isArchived Boolean @default(false)
-
+// ─── Multi-tenant ────────────────────────────────────────────
+model Organization {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+  settings Json?
+  members  OrganizationMember[]
+  chats    Chat[]
+  documents Document[]
+  subscriptions Subscription[]
+  presence UserPresence[]
+  cases         LegalCase[]
+  collaboration CollaborationRoom[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([createdAt])
 }
 
-//////////////////////////////
-// MESSAGE
-//////////////////////////////
+model OrganizationMember {
+  id             String @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           OrgRole @default(MEMBER)
+  @@unique([organizationId, userId])
+}
+
+model Subscription {
+  id     String @id @default(cuid())
+  userId String?
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan   SubscriptionPlan @default(FREE)
+  status SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  monthlyTokenLimit Int @default(50000)
+  monthlyTokensUsed Int @default(0)
+  monthlyAgentLimit Int @default(100)
+  monthlyAgentCalls Int @default(0)
+  aiCreditsBalance  Int @default(0)
+  currentPeriodEnd  DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Chat & messages ─────────────────────────────────────────
+model Chat {
+  id     String @id @default(cuid())
+  title  String
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  agentType AgentType @default(GENERAL)
+  visibility ChatVisibility @default(PRIVATE)
+  messages   Message[]
+  memorySummary String? @db.Text
+  lastMessageAt DateTime?
+  isArchived Boolean @default(false)
+  language   String @default("en")
+  collaboration CollaborationRoom?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId])
+  @@index([organizationId])
+}
 
 model Message {
-  id String @id @default(cuid())
-
-  role MessageRole
-
+  id      String @id @default(cuid())
+  role    MessageRole
   content String @db.Text
-
-  chatId String
-  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
-
+  chatId  String
+  chat    Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
   modelUsed AIModel?
-
   tokensUsed Int?
-
-  responseTimeMs Int?
-
-  language String? @default("en")
-
   metadata Json?
-
+  clientId String?
+  syncedAt DateTime?
   createdAt DateTime @default(now())
-
   @@index([chatId])
-  @@index([createdAt])
+  @@index([clientId])
 }
 
-//////////////////////////////
-// DOCUMENT
-//////////////////////////////
-
+// ─── Documents & RAG ─────────────────────────────────────────
 model Document {
-  id String @id @default(cuid())
-
-  title   String
-  fileUrl String
-
+  id       String @id @default(cuid())
+  title    String
+  fileUrl  String
   mimeType String?
   fileSize Int?
-
   extractedText String? @db.Text
-
-  status DocumentStatus @default(PROCESSING)
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  status   DocumentStatus @default(PROCESSING)
+  metadata Json?
+  userId   String
+  user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  chunks DocumentChunk[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([status])
 }
-
-//////////////////////////////
-// AI KNOWLEDGE BASE
-//////////////////////////////
 
 model LegalKnowledge {
-  id String @id @default(cuid())
-
-  title String
-
-  source   String?
+  id       String @id @default(cuid())
+  title    String
+  content  String @db.Text
   category String?
-
-  content String @db.Text
-
-  embeddingId String?
-
+  source   String?
+  language String @default("en")
+  isPublished Boolean @default(true)
+  chunks DocumentChunk[]
   createdAt DateTime @default(now())
-
-  @@index([category])
 }
 
-//////////////////////////////
-// ANALYTICS
-//////////////////////////////
-
-model AIUsageLog {
-  id String @id @default(cuid())
-
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id])
-
-  model AIModel
-
-  promptTokens     Int
-  completionTokens Int
-
-  totalTokens Int
-
+model DocumentChunk {
+  id       String @id @default(cuid())
+  content  String @db.Text
+  chunkIndex Int
+  tokenCount Int @default(0)
+  metadata Json?
+  embedding Unsupported("vector(1536)")?
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  legalKnowledgeId String?
+  legalKnowledge   LegalKnowledge? @relation(fields: [legalKnowledgeId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+}
 
+// ─── Phase 9: Mobile & real-time ─────────────────────────────
+model UserDevice {
+  id         String @id @default(cuid())
+  userId     String
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId   String
+  platform   DevicePlatform
+  pushToken  String?
+  appVersion String?
+  biometricEnabled Boolean @default(false)
+  lastSyncAt DateTime?
+  @@unique([userId, deviceId])
+  @@index([pushToken])
+}
+
+model UserPresence {
+  id             String @id @default(cuid())
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status         PresenceStatus @default(OFFLINE)
+  device         DevicePlatform?
+  lastSeenAt     DateTime @default(now())
   @@index([userId])
-  @@index([createdAt])
+  @@index([organizationId])
+}
+
+model SyncOperation {
+  id             String @id @default(cuid())
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId       String
+  entityType     SyncEntityType
+  entityId       String
+  operation      SyncOperationType
+  payload        Json
+  synced         Boolean @default(false)
+  conflictResolved Boolean @default(false)
+  createdAt      DateTime @default(now())
+  @@index([userId, synced])
+  @@index([clientId])
+}
+
+model CollaborationRoom {
+  id             String @id @default(cuid())
+  name           String
+  chatId         String? @unique
+  chat           Chat? @relation(fields: [chatId], references: [id], onDelete: SetNull)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  activeUsers    Json?
+  createdAt      DateTime @default(now())
+}
+
+// ─── Productivity ────────────────────────────────────────────
+model LegalCase {
+  id             String @id @default(cuid())
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  title          String
+  description    String? @db.Text
+  status         CaseStatus @default(OPEN)
+  courtName      String?
+  caseNumber     String?
+  timeline       Json?
+  metadata       Json?
+  tasks          LegalTask[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model LegalTask {
+  id          String @id @default(cuid())
+  userId      String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caseId      String?
+  legalCase   LegalCase? @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  dueAt       DateTime?
+  aiGenerated Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AINote {
+  id        String @id @default(cuid())
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String @db.Text
+  summary   String? @db.Text
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CalendarEvent {
+  id          String @id @default(cuid())
+  userId      String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  reminderAt  DateTime?
+  caseId      String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+}
+
+model MeetingSummary {
+  id          String @id @default(cuid())
+  userId      String
+  title       String
+  transcript  String? @db.Text
+  summary     String @db.Text
+  actionItems Json?
+  createdAt   DateTime @default(now())
+}
+
+model EmailDraft {
+  id        String @id @default(cuid())
+  userId    String
+  subject   String
+  body      String @db.Text
+  recipients Json?
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+// ─── Analytics ───────────────────────────────────────────────
+model AIUsageLog {
+  id           String @id @default(cuid())
+  userId       String?
+  user         User? @relation(fields: [userId], references: [id])
+  model        AIModel
+  promptTokens Int
+  completionTokens Int
+  totalTokens  Int
+  operation    String?
+  agentType    AgentType?
+  createdAt    DateTime @default(now())
+}
+
+model AgentSession {
+  id              String @id @default(cuid())
+  userId          String
+  primaryAgent    AgentType
+  consultedAgents AgentType[]
+  query           String @db.Text
+  citations       Json?
+  toolsUsed       String[]
+  createdAt       DateTime @default(now())
 }
