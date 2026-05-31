@@ -85,16 +85,16 @@ export default function Home() {
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 href="/register"
-                className="group flex h-13 items-center gap-2 rounded-xl bg-gradient-to-r from-[#2a4f96] to-[#1e3a70] px-8 py-3.5 text-sm font-semibold text-white shadow-xl shadow-[#2a4f96]/30 transition hover:from-[#4a72c4] hover:to-[#2a4f96] hover:shadow-[#4a72c4]/40"
+                className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#2a4f96] to-[#1e3a70] px-8 py-4 text-sm font-semibold text-white shadow-xl shadow-[#2a4f96]/30 transition hover:from-[#4a72c4] hover:to-[#2a4f96] hover:shadow-[#4a72c4]/40"
               >
                 Start for free
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </Link>
               <Link
-                href="/dashboard/chat"
-                className="flex h-13 items-center gap-2 rounded-xl border border-[#2a4f96]/60 bg-[#0a1628]/60 px-8 py-3.5 text-sm font-semibold text-[#7aa0d8] backdrop-blur transition hover:border-[#4a72c4] hover:bg-[#0f2040] hover:text-white"
+                href="/login"
+                className="flex items-center gap-2 rounded-xl border border-[#2a4f96]/60 bg-[#0a1628]/60 px-8 py-4 text-sm font-semibold text-[#7aa0d8] backdrop-blur transition hover:border-[#4a72c4] hover:bg-[#0f2040] hover:text-white"
               >
-                Open dashboard
+                Sign in
               </Link>
             </div>
 

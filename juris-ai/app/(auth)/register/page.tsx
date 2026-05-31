@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { Scale, User, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -28,12 +27,14 @@ export default function RegisterPage() {
         setError("Registration failed. Please try again.");
         return;
       }
+      const { signIn } = await import("next-auth/react");
       const signInRes = await signIn("credentials", { email, password, redirect: false });
       if (!signInRes || signInRes.error) {
         router.push("/login");
         return;
       }
       router.push("/dashboard/chat");
+      router.refresh();
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong while creating your account.");
     } finally {

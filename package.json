@@ -2,6 +2,7 @@
   "name": "jurisai-platform",
   "version": "10.0.0",
   "private": true,
+  "packageManager": "pnpm@10.28.0",
   "workspaces": [
     "juris-ai",
     "packages/*"

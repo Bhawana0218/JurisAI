@@ -1,20 +1,17 @@
 import { Suspense } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "./login-form";
 
 function LoginFallback() {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <div className="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-12">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle className="text-2xl">Sign in</CardTitle>
-            <CardDescription>Loading your secure legal workspace...</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-10 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800" />
-          </CardContent>
-        </Card>
+    <div className="flex min-h-screen items-center justify-center bg-[#050d1a] px-4">
+      <div className="w-full max-w-md space-y-4">
+        <div className="mx-auto h-14 w-14 animate-pulse rounded-2xl bg-[#162d58]" />
+        <div className="mx-auto h-6 w-40 animate-pulse rounded-lg bg-[#162d58]" />
+        <div className="rounded-2xl border border-[#162d58] bg-[#0a1628] p-8 space-y-4">
+          <div className="h-10 animate-pulse rounded-xl bg-[#162d58]" />
+          <div className="h-10 animate-pulse rounded-xl bg-[#162d58]" />
+          <div className="h-11 animate-pulse rounded-xl bg-[#1e3a70]" />
+        </div>
       </div>
     </div>
   );

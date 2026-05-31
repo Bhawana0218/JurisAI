@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { Scale, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -21,13 +20,25 @@ export function LoginForm() {
     if (isLoading) return;
     setError(null);
     setIsLoading(true);
+
     try {
-      const res = await signIn("credentials", { email, password, redirect: false });
+      // Use the NextAuth credentials endpoint directly — avoids needing
+      // SessionProvider in the tree (which we removed from the root layout
+      // to fix the static prerender crash).
+      const { signIn } = await import("next-auth/react");
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
       if (!res || res.error) {
         setError("Invalid email or password. Please try again.");
         return;
       }
+
       router.push(callbackUrl);
+      router.refresh(); // sync server session state
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -59,7 +70,10 @@ export function LoginForm() {
           <form className="space-y-5" onSubmit={onSubmit}>
             {/* Email */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-[#7aa0d8]" htmlFor="email">
+              <label
+                className="text-xs font-semibold uppercase tracking-wider text-[#7aa0d8]"
+                htmlFor="email"
+              >
                 Email address
               </label>
               <div className="relative">
@@ -80,7 +94,10 @@ export function LoginForm() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-[#7aa0d8]" htmlFor="password">
+              <label
+                className="text-xs font-semibold uppercase tracking-wider text-[#7aa0d8]"
+                htmlFor="password"
+              >
                 Password
               </label>
               <div className="relative">
@@ -128,7 +145,10 @@ export function LoginForm() {
 
           <div className="mt-6 border-t border-[#162d58] pt-5 text-center text-sm text-[#7aa0d8]">
             New to JurisAI?{" "}
-            <Link href="/register" className="font-semibold text-[#c9a84c] transition hover:text-[#e8c97a]">
+            <Link
+              href="/register"
+              className="font-semibold text-[#c9a84c] transition hover:text-[#e8c97a]"
+            >
               Create an account
             </Link>
           </div>
