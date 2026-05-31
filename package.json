@@ -31,8 +31,7 @@
     "docker:down": "docker compose down",
     "k8s:apply": "kustomize build infrastructure/k8s/overlays/production | kubectl apply -f -",
     "k8s:staging": "kustomize build infrastructure/k8s/overlays/staging | kubectl apply -f -",
-    "ci:all": "npm run test && npm run lint && npm run build:web",
-    "postinstall": "prisma generate --schema=juris-ai/prisma/schema.prisma"
+    "ci:all": "npm run test && npm run lint && npm run build:web"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
