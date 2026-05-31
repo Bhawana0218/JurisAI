@@ -5,10 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "dev:ws": "tsx server/realtime/ws-server.ts",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest",
+    "test": "vitest --run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "postinstall": "prisma generate"
@@ -20,7 +20,6 @@
     "@hookform/resolvers": "^5.4.0",
     "@langchain/core": "^1.1.48",
     "@langchain/openai": "^1.4.7",
-    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@sentry/nextjs": "^10.54.0",
     "@supabase/auth-helpers-nextjs": "^0.15.0",

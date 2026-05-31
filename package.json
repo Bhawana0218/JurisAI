@@ -4,7 +4,6 @@
   "private": true,
   "workspaces": [
     "juris-ai",
-    "apps/*",
     "packages/*"
   ],
   "scripts": {
@@ -33,7 +32,7 @@
     "k8s:apply": "kustomize build infrastructure/k8s/overlays/production | kubectl apply -f -",
     "k8s:staging": "kustomize build infrastructure/k8s/overlays/staging | kubectl apply -f -",
     "ci:all": "npm run test && npm run lint && npm run build:web",
-    "postinstall": "prisma generate --schema=juris-ai/prisma/schema.prisma && npm run build --workspace=packages/shared"
+    "postinstall": "prisma generate --schema=juris-ai/prisma/schema.prisma"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
