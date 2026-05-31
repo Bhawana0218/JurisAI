@@ -1,4 +1,4 @@
-import { RAG_CONFIG } from "@/config/rag.config";
+import { RAG_CONFIG } from "@/components/config/rag.config";
 import { generateEmbedding, hybridSearch } from "@/lib/rag";
 import { prisma } from "@/lib/prisma";
 

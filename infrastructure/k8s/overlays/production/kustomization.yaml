@@ -1,0 +1,55 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: jurisai-production
+
+namespace: jurisai
+
+resources:
+- ../../base
+
+patches:
+- target:
+    kind: Deployment
+    name: jurisai-web
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 8
+    - op: add
+      path: /spec/template/spec/containers/0/resources
+      value:
+        requests:
+          memory: "1Gi"
+          cpu: "1"
+        limits:
+          memory: "4Gi"
+          cpu: "4"
+- target:
+    kind: Deployment
+    name: jurisai-ws
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 6
+- target:
+    kind: Deployment
+    name: jurisai-worker
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 6
+
+images:
+- name: ${DOCKER_REGISTRY}/jurisai-web
+  newName: gcr.io/jurisai-production/jurisai-web
+- name: ${DOCKER_REGISTRY}/jurisai-ws
+  newName: gcr.io/jurisai-production/jurisai-ws
+- name: ${DOCKER_REGISTRY}/jurisai-worker
+  newName: gcr.io/jurisai-production/jurisai-worker
+
+configMapGenerator:
+- name: jurisai-env
+  literals:
+  - NODE_ENV=production
+  - LOG_LEVEL=info

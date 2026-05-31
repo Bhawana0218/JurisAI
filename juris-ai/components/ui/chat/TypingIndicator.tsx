@@ -1,24 +1,30 @@
 "use client";
 
-import * as React from "react";
+import { Scale } from "lucide-react";
 
 export function TypingIndicator() {
   return (
-    <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-      <span>JurisAI is typing</span>
-      <span className="inline-flex items-center">
-        <span className="h-1.5 w-1.5 rounded-full bg-zinc-400 animate-[bounce_1s_infinite]" style={{ animationDelay: "0ms" }} />
-        <span className="ml-1 h-1.5 w-1.5 rounded-full bg-zinc-400 animate-[bounce_1s_infinite]" style={{ animationDelay: "120ms" }} />
-        <span className="ml-1 h-1.5 w-1.5 rounded-full bg-zinc-400 animate-[bounce_1s_infinite]" style={{ animationDelay: "240ms" }} />
-      </span>
-      <style jsx>{`
-        @keyframes bounce {
-          0%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-3px); }
-        }
-        .animate-\[bounce_1s_infinite\] { animation: bounce 1s infinite; }
-      `}</style>
+    <div className="flex items-start gap-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#c9a84c]/30 bg-gradient-to-br from-[#c9a84c]/20 to-[#162d58]">
+        <Scale className="h-4 w-4 text-[#c9a84c]" />
+      </div>
+      <div className="rounded-2xl rounded-tl-sm border border-[#162d58] bg-[#0a1628] px-4 py-3">
+        <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#c9a84c]">
+          JurisAI
+        </div>
+        <div className="flex items-center gap-1.5">
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="h-2 w-2 rounded-full bg-[#4a72c4]"
+              style={{
+                animation: "bounce 1.2s infinite",
+                animationDelay: `${i * 0.2}s`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
-

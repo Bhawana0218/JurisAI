@@ -15,6 +15,11 @@ export const {
 } = NextAuth({
   adapter: PrismaAdapter(prisma),
 
+  // Required for non-Vercel deployments (local dev, Docker, custom hosts).
+  // Without this, auth() in Server Components returns null because Auth.js v5
+  // cannot verify the request host, causing spurious redirects to /login.
+  trustHost: true,
+
   session: {
     strategy: "jwt",
   },
@@ -86,5 +91,5 @@ if (!email || !password) {
     },
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
 });

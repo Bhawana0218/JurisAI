@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { RAG_CONFIG } from "@/config/rag.config";
+import { RAG_CONFIG } from "@/components/config/rag.config";
 
 export interface VectorSearchResult {
   chunkId: string;
@@ -50,18 +50,16 @@ export async function vectorSearch(
   if (options?.organizationId) {
     query += ` AND (d."organizationId" = $${paramIndex} OR d."organizationId" IS NULL)`;
     params.push(options.organizationId);
+    paramIndex++;
   }
-
-  query += ` HAVING score >= $${paramIndex}`;
-  params.push(minScore);
-  paramIndex++;
 
   query += ` ORDER BY score DESC LIMIT $${paramIndex}`;
   params.push(topK);
 
   try {
-    const results = await prisma.$queryRawUnsafe<VectorSearchResult[]>(query, ...params);
-    return results;
+    const rawResults = await prisma.$queryRawUnsafe<VectorSearchResult[]>(query, ...params);
+    // Filter by minScore in application layer (avoids subquery complexity)
+    return rawResults.filter((r) => (r.score ?? 0) >= minScore);
   } catch (error) {
     console.error("[Vector Search] Error:", error);
     return [];

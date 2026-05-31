@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { chunkText } from "@/lib/rag/chunking";
-import { RAG_CONFIG } from "@/config/rag.config";
+import { RAG_CONFIG } from "@/components/config/rag.config";
 
 describe("RAG Engine", () => {
   describe("chunkText", () => {

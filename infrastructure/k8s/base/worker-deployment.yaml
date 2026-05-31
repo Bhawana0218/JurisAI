@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jurisai-worker
+  namespace: jurisai
+  labels:
+    app: jurisai-worker
+    tier: background
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: jurisai-worker
+  template:
+    metadata:
+      labels:
+        app: jurisai-worker
+        tier: background
+    spec:
+      containers:
+      - name: worker
+        image: ${DOCKER_REGISTRY}/jurisai-worker:${IMAGE_TAG}
+        command: ["node", "juris-ai/platform/workers/background/index.js"]
+        envFrom:
+        - configMapRef:
+            name: jurisai-config
+        - secretRef:
+            name: jurisai-secrets
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jurisai-temporal-worker
+  namespace: jurisai
+  labels:
+    app: jurisai-temporal-worker
+    tier: background
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: jurisai-temporal-worker
+  template:
+    metadata:
+      labels:
+        app: jurisai-temporal-worker
+        tier: background
+    spec:
+      containers:
+      - name: temporal-worker
+        image: ${DOCKER_REGISTRY}/jurisai-temporal-worker:${IMAGE_TAG}
+        command: ["node", "juris-ai/platform/workers/temporal/index.js"]
+        env:
+        - name: TEMPORAL_HOST
+          value: "temporal:7233"
+        - name: TEMPORAL_NAMESPACE
+          value: "jurisai"
+        envFrom:
+        - secretRef:
+            name: jurisai-secrets
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: jurisai-worker-hpa
+  namespace: jurisai
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: jurisai-worker
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75

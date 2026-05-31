@@ -19,11 +19,12 @@ export function createEvent<T>(
   userId?: string
 ): RealtimeEnvelope<T> {
   return {
+    id: crypto.randomUUID(),
     type,
     channel,
     payload,
     timestamp: new Date().toISOString(),
-    userId,
+    // userId,
   };
 }
 

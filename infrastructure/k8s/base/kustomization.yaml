@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: jurisai-base
+
+namespace: jurisai
+
+resources:
+- namespace.yaml
+- configmap.yaml
+- secrets.yaml
+- postgres-statefulset.yaml
+- redis-statefulset.yaml
+- web-deployment.yaml
+- ws-server-deployment.yaml
+- worker-deployment.yaml
+- ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/name: jurisai
+  app.kubernetes.io/part-of: jurisai-platform
+  app.kubernetes.io/managed-by: kustomize

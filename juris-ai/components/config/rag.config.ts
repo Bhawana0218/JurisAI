@@ -1,0 +1,16 @@
+export const RAG_CONFIG = {
+  embeddingDimensions: 1536,
+  embeddingModel: "text-embedding-3-small" as const,
+  chunkSize: 1000,
+  chunkOverlap: 200,
+  topK: 8,
+  hybridSemanticWeight: 0.7,
+  hybridKeywordWeight: 0.3,
+  minSimilarityScore: 0.72,
+  maxContextTokens: 6000,
+  maxChunksInContext: 6,
+  memoryWindowMessages: 10,
+  // OpenRouter requires the full provider-prefixed model ID
+  chatModel: "openai/gpt-4.1-mini" as const,
+  maxUploadSizeMb: 25,
+} as const;

@@ -5,7 +5,8 @@ import { toErrorResponse } from "@/lib/errors/api-error";
 export async function GET() {
   try {
     const session = await auth();
-    if (!session?.user?.id) return new Response("Unauthorized", { status: 401 });
+    if (!session?.user?.id)
+      return new Response("Unauthorized", { status: 401 });
 
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -16,7 +17,6 @@ export async function GET() {
       totalDocuments,
       totalCases,
       recentUsers,
-      chatCountByDay,
       agentUsage,
       tokensUsed,
     ] = await Promise.all([
@@ -26,14 +26,6 @@ export async function GET() {
       prisma.legalCase.count(),
       prisma.user.count({
         where: { createdAt: { gte: thirtyDaysAgo } },
-      }),
-      prisma.message.groupBy({
-        by: ["createdAt"],
-        _count: { id: true },
-        where: {
-          createdAt: { gte: thirtyDaysAgo },
-          role: "USER",
-        },
       }),
       prisma.chat.groupBy({
         by: ["agentType"],
@@ -45,9 +37,24 @@ export async function GET() {
       }),
     ]);
 
-    const dailyChats = chatCountByDay.map((c) => ({
-      date: c.createdAt.toISOString().split("T")[0],
-      count: c._count.id,
+    // Group daily chat messages by date using raw SQL to avoid
+    // groupBy on a DateTime field (which groups by exact timestamp, not day).
+    const dailyRaw = await prisma.$queryRaw<
+      Array<{ date: string; count: bigint }>
+    >`
+      SELECT
+        TO_CHAR("createdAt" AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS date,
+        COUNT(id) AS count
+      FROM "Message"
+      WHERE "createdAt" >= ${thirtyDaysAgo}
+        AND role = 'USER'
+      GROUP BY date
+      ORDER BY date ASC
+    `;
+
+    const dailyChats = dailyRaw.map((row) => ({
+      date: row.date,
+      count: Number(row.count),
     }));
 
     const agentDistribution = agentUsage.map((a) => ({
@@ -66,6 +73,7 @@ export async function GET() {
       tokensUsedLast30Days: tokensUsed._sum.totalTokens ?? 0,
     });
   } catch (error) {
+    console.error("[Analytics API Error]", error);
     return toErrorResponse(error);
   }
 }

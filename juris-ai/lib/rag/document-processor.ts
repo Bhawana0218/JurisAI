@@ -44,19 +44,28 @@ export async function processDocument(documentId: string): Promise<void> {
     const chunkContents = chunks.map((c) => c.content);
     const embeddings = await generateEmbeddings(chunkContents);
 
-    await prisma.$transaction(
-      chunks.map((chunk, i) =>
-        prisma.documentChunk.create({
+    await prisma.$transaction(async (tx) => {
+      for (const [index, chunk] of chunks.entries()) {
+        const createdChunk = await tx.documentChunk.create({
           data: {
             documentId,
             content: chunk.content,
             chunkIndex: chunk.chunkIndex,
             tokenCount: chunk.tokenCount,
-            embedding: embeddings[i] ?? [],
           },
-        })
-      )
-    );
+        });
+
+        const embedding = embeddings[index];
+
+        if (embedding?.length) {
+          await tx.$executeRaw`
+            UPDATE "DocumentChunk"
+            SET embedding = ${`[${embedding.join(",")}]`}::vector
+            WHERE id = ${createdChunk.id}
+          `;
+        }
+      }
+    });
 
     await prisma.document.update({
       where: { id: documentId },
@@ -85,17 +94,26 @@ export async function processLegalKnowledgeEntry(entryId: string): Promise<void>
   const chunkContents = chunks.map((c) => c.content);
   const embeddings = await generateEmbeddings(chunkContents);
 
-  await prisma.$transaction(
-    chunks.map((chunk, i) =>
-      prisma.documentChunk.create({
+  await prisma.$transaction(async (tx) => {
+    for (const [index, chunk] of chunks.entries()) {
+      const createdChunk = await tx.documentChunk.create({
         data: {
           legalKnowledgeId: entryId,
           content: chunk.content,
           chunkIndex: chunk.chunkIndex,
           tokenCount: chunk.tokenCount,
-          embedding: embeddings[i] ?? [],
         },
-      })
-    )
-  );
+      });
+
+      const embedding = embeddings[index];
+
+      if (embedding?.length) {
+        await tx.$executeRaw`
+          UPDATE "DocumentChunk"
+          SET embedding = ${`[${embedding.join(",")}]`}::vector
+          WHERE id = ${createdChunk.id}
+        `;
+      }
+    }
+  });
 }

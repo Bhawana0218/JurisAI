@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { Scale, Zap, Shield, BookOpen, FileText } from "lucide-react";
 
 import { ChatInput } from "@/components/ui/chat/ChatInput";
 import { ChatLayout } from "@/components/ui/chat/ChatLayout";
@@ -10,32 +11,34 @@ import { ChatSidebar } from "@/components/ui/chat/ChatSidebar";
 import { TypingIndicator } from "@/components/ui/chat/TypingIndicator";
 import { useChatStore, type ChatSummary } from "@/store/chat-store";
 
+const SUGGESTIONS = [
+  { icon: Shield, text: "How do I file an FIR for cybercrime?" },
+  { icon: Scale, text: "What are my consumer rights for a defective product?" },
+  { icon: BookOpen, text: "Steps to file a domestic violence complaint" },
+  { icon: FileText, text: "Explain the court procedure for a civil case" },
+];
+
 export function ChatView({ chatId }: { chatId?: string }) {
   const router = useRouter();
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   const {
-    chats,
-    messages,
-    isStreaming,
-    error,
-    isLoadingChats,
-    setChats,
-    setCurrentChat,
-    setMessages,
-    addMessage,
-    appendToLastMessage,
-    setIsStreaming,
-    setError,
-    setIsLoadingChats,
+    chats, messages, isStreaming, error, isLoadingChats,
+    setChats, setCurrentChat, setMessages, addMessage,
+    appendToLastMessage, setIsStreaming, setError, setIsLoadingChats,
   } = useChatStore();
 
   const [input, setInput] = React.useState("");
   const [agentMeta, setAgentMeta] = React.useState<{
     agentId?: string;
-    routingReason?: string;
     confidence?: number;
     citations?: Array<{ documentId?: string; title?: string; snippet?: string }>;
   }>({});
+
+  // Scroll to bottom on new messages
+  React.useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isStreaming]);
 
   React.useEffect(() => {
     setCurrentChat(chatId ?? null);
@@ -50,9 +53,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
           const data = await res.json();
           setChats(data.chats ?? []);
         }
-      } catch {
-        // silently fail
-      } finally {
+      } catch { /* silently fail */ } finally {
         setIsLoadingChats(false);
       }
     };
@@ -60,10 +61,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
   }, [setChats, setIsLoadingChats]);
 
   React.useEffect(() => {
-    if (!chatId) {
-      setMessages([]);
-      return;
-    }
+    if (!chatId) { setMessages([]); return; }
     const fetchMessages = async () => {
       try {
         const res = await fetch(`/api/chats/${chatId}/messages`);
@@ -78,9 +76,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
             }))
           );
         }
-      } catch {
-        // silently fail
-      }
+      } catch { /* silently fail */ }
     };
     fetchMessages();
   }, [chatId, setMessages]);
@@ -96,43 +92,29 @@ export function ChatView({ chatId }: { chatId?: string }) {
       if (!res.ok) return null;
       const data = await res.json();
       const newId = data.chat.id;
-      const chatSummary = { id: newId, title: "New conversation", agentType: data.chat.agentType ?? "GENERAL", createdAt: data.chat.createdAt, lastMessageAt: null };
-      setChats([chatSummary, ...chats]);
+      setChats([{ id: newId, title: "New conversation", agentType: data.chat.agentType ?? "GENERAL", createdAt: data.chat.createdAt, lastMessageAt: null }, ...chats]);
       router.push(`/dashboard/chat/${newId}`);
       return newId;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }, [chatId, chats, router, setChats]);
 
   const onSend = async () => {
     const userText = input.trim();
     if (!userText || isStreaming) return;
-
     setError(null);
 
     const resolvedChatId = chatId || (await ensureChat());
-    if (!resolvedChatId) {
-      setError("Failed to create chat session");
-      return;
-    }
+    if (!resolvedChatId) { setError("Failed to create chat session"); return; }
 
     setIsStreaming(true);
     addMessage({ id: `user-${Date.now()}`, role: "user", content: userText });
     setInput("");
 
     try {
-      const payload = {
-        messages: [{ role: "user", content: userText }],
-        chatId: resolvedChatId,
-        useRag: true,
-        language: "en",
-      };
-
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ messages: [{ role: "user", content: userText }], chatId: resolvedChatId, useRag: true, language: "en" }),
       });
 
       if (!res.ok || !res.body) {
@@ -142,30 +124,21 @@ export function ChatView({ chatId }: { chatId?: string }) {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-
       addMessage({ id: `assistant-${Date.now()}`, role: "assistant", content: "" });
-
-      setAgentMeta((prev) => ({
-        ...prev,
-        agentId: res.headers.get("X-Agent-Id") ?? undefined,
-      }));
+      setAgentMeta((prev) => ({ ...prev, agentId: res.headers.get("X-Agent-Id") ?? undefined }));
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        appendToLastMessage(chunk);
+        appendToLastMessage(decoder.decode(value, { stream: true }));
       }
 
       const currentChats = useChatStore.getState().chats;
-      setChats(
-        currentChats.map((c) =>
-          c.id === resolvedChatId
-            ? { ...c, lastMessageAt: new Date().toISOString(), title: c.title === "New conversation" && userText.length > 50 ? userText.slice(0, 50) + "..." : c.title }
-            : c
-        )
-      );
+      setChats(currentChats.map((c) =>
+        c.id === resolvedChatId
+          ? { ...c, lastMessageAt: new Date().toISOString(), title: c.title === "New conversation" && userText.length > 50 ? userText.slice(0, 50) + "..." : c.title }
+          : c
+      ));
     } catch (e: any) {
       setError(e?.message ?? "Something went wrong");
     } finally {
@@ -184,120 +157,104 @@ export function ChatView({ chatId }: { chatId?: string }) {
       }
       header={
         <div className="flex items-center justify-between gap-3">
-          <div className="flex flex-col">
-            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-              JurisAI — Legal Intelligence Chat
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#2a4f96] to-[#162d58]">
+              <Scale className="h-3.5 w-3.5 text-[#c9a84c]" />
             </div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              AI Agent: {agentMeta.agentId ?? "Analyzing..."}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">
-              Agent: <span className="font-medium text-zinc-900 dark:text-zinc-100">{agentMeta.agentId ?? "—"}</span>
-            </div>
-            {typeof agentMeta.confidence === "number" ? (
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                Confidence: {Math.round(agentMeta.confidence * 100)}%
+            <div>
+              <div className="text-sm font-semibold text-white">JurisAI Legal Chat</div>
+              <div className="text-[10px] text-[#4a72c4]">
+                {agentMeta.agentId ? `Agent: ${agentMeta.agentId.replace(/_/g, " ")}` : "Routing to best agent…"}
               </div>
-            ) : null}
+            </div>
           </div>
+          {typeof agentMeta.confidence === "number" && (
+            <div className="flex items-center gap-1.5 rounded-full border border-[#162d58] bg-[#0f2040] px-3 py-1">
+              <Zap className="h-3 w-3 text-[#c9a84c]" />
+              <span className="text-[10px] font-medium text-[#7aa0d8]">
+                {Math.round(agentMeta.confidence * 100)}% confidence
+              </span>
+            </div>
+          )}
         </div>
       }
     >
       <div className="flex h-full flex-col">
-        <div className="flex-1 overflow-auto p-4">
+        {/* Messages area */}
+        <div className="flex-1 overflow-y-auto px-4 py-6">
           {messages.length === 0 ? (
-            <div className="mx-auto mt-10 max-w-xl space-y-4">
-              <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  Ask a legal question
+            <div className="mx-auto mt-6 max-w-2xl">
+              {/* Welcome card */}
+              <div className="rounded-2xl border border-[#162d58] bg-[#0a1628] p-6 text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2a4f96] to-[#162d58] shadow-lg shadow-[#2a4f96]/20">
+                  <Scale className="h-7 w-7 text-[#c9a84c]" />
                 </div>
-                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                  JurisAI will route your query to the best legal agent and ground answers with
-                  AI-powered retrieval citations from uploaded documents and legal knowledge base.
+                <h2 className="mt-4 text-lg font-bold text-white">Ask a legal question</h2>
+                <p className="mt-2 text-sm leading-relaxed text-[#7aa0d8]">
+                  JurisAI routes your query to the best specialist agent and grounds answers
+                  with AI-powered retrieval from your documents and the Indian legal knowledge base.
                 </p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[
-                  "How do I file an FIR for cybercrime?",
-                  "What are my consumer rights for a defective product?",
-                  "Steps to file a domestic violence complaint",
-                  "Explain the court procedure for a civil case",
-                ].map((suggestion) => (
+
+              {/* Suggestion chips */}
+              <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                {SUGGESTIONS.map(({ icon: Icon, text }) => (
                   <button
-                    key={suggestion}
+                    key={text}
                     type="button"
-                    onClick={() => setInput(suggestion)}
-                    className="rounded-xl border border-zinc-200 bg-white p-3 text-left text-sm text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    onClick={() => setInput(text)}
+                    className="flex items-start gap-3 rounded-xl border border-[#162d58] bg-[#0a1628] p-3.5 text-left text-sm text-[#7aa0d8] transition hover:border-[#2a4f96] hover:bg-[#0f2040] hover:text-white"
                   >
-                    {suggestion}
+                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[#4a72c4]" />
+                    {text}
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="mx-auto max-w-3xl space-y-3">
+            <div className="mx-auto max-w-3xl space-y-4">
               {messages.map((m, idx) => (
-                <ChatMessage
-                  key={`${m.id || idx}`}
-                  role={m.role}
-                  content={m.content}
-                />
+                <ChatMessage key={m.id || idx} role={m.role} content={m.content} />
               ))}
-              {isStreaming ? <TypingIndicator /> : null}
+              {isStreaming && <TypingIndicator />}
+              <div ref={messagesEndRef} />
             </div>
           )}
         </div>
 
-        <div className="border-t border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-          {error ? (
-            <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">
-              {error}
-              <button
-                type="button"
-                className="ml-2 underline"
-                onClick={() => setError(null)}
-              >
+        {/* Input area */}
+        <div className="shrink-0 border-t border-[#162d58] bg-[#0a1628] p-4">
+          {error && (
+            <div className="mb-3 flex items-center justify-between rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+              <span>{error}</span>
+              <button type="button" onClick={() => setError(null)} className="ml-3 text-xs underline opacity-70 hover:opacity-100">
                 Dismiss
               </button>
             </div>
-          ) : null}
-          <ChatInput
-            value={input}
-            onChange={setInput}
-            onSend={onSend}
-            isLoading={isStreaming}
-          />
+          )}
+          <ChatInput value={input} onChange={setInput} onSend={onSend} isLoading={isStreaming} />
         </div>
       </div>
 
-      <div className="fixed bottom-4 right-4 w-[360px] max-w-[90vw] rounded-2xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="border-b border-zinc-200 p-3 text-sm font-semibold dark:border-zinc-800 dark:text-zinc-100">
-          Retrieval Snapshot
-        </div>
-        <div className="p-3">
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">Citations</div>
-          <div className="mt-2 space-y-2">
-            {(agentMeta.citations ?? []).length ? (
-              agentMeta.citations!.map((c, i) => (
-                <div key={i} className="rounded-xl bg-zinc-50 p-2 dark:bg-zinc-900">
-                  <div className="truncate text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                    {c.title ?? "Untitled"}
-                  </div>
-                  {c.snippet ? (
-                    <div className="mt-1 line-clamp-3 text-xs text-zinc-600 dark:text-zinc-400">
-                      {c.snippet}
-                    </div>
-                  ) : null}
-                </div>
-              ))
-            ) : (
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">No citations captured yet.</div>
-            )}
+      {/* Citations panel */}
+      {(agentMeta.citations ?? []).length > 0 && (
+        <div className="fixed bottom-4 right-4 w-80 rounded-2xl border border-[#162d58] bg-[#0a1628] shadow-2xl shadow-[#2a4f96]/20">
+          <div className="flex items-center gap-2 border-b border-[#162d58] px-4 py-3">
+            <BookOpen className="h-3.5 w-3.5 text-[#c9a84c]" />
+            <span className="text-xs font-semibold text-white">Retrieval Citations</span>
+          </div>
+          <div className="max-h-64 overflow-y-auto p-3 space-y-2">
+            {agentMeta.citations!.map((c, i) => (
+              <div key={i} className="rounded-xl border border-[#162d58] bg-[#050d1a] p-2.5">
+                <div className="truncate text-xs font-medium text-[#7aa0d8]">{c.title ?? "Untitled"}</div>
+                {c.snippet && (
+                  <div className="mt-1 line-clamp-2 text-[11px] text-[#4a72c4]">{c.snippet}</div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      )}
     </ChatLayout>
   );
 }

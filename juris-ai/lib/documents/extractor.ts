@@ -41,9 +41,14 @@ export async function extractText(
 
 async function extractFromPdf(buffer: Buffer): Promise<string> {
   try {
-    const pdfParse = await import("pdf-parse");
-    const data = await pdfParse.default(buffer);
-    return data.text || "";
+    const { PDFParse } = await import("pdf-parse");
+    const parser = new PDFParse({ data: buffer });
+    try {
+      const data = await parser.getText();
+      return data.text || "";
+    } finally {
+      await parser.destroy();
+    }
   } catch (error) {
     console.error("[PDF Extractor] Error:", error);
     return buffer.toString("utf-8").replace(/[^\x20-\x7E\n]/g, " ").replace(/\s+/g, " ").trim();

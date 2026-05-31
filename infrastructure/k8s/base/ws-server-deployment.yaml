@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jurisai-ws
+  namespace: jurisai
+  labels:
+    app: jurisai-ws
+    tier: realtime
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: jurisai-ws
+  template:
+    metadata:
+      labels:
+        app: jurisai-ws
+        tier: realtime
+    spec:
+      containers:
+      - name: ws-server
+        image: ${DOCKER_REGISTRY}/jurisai-ws:${IMAGE_TAG}
+        ports:
+        - containerPort: 3001
+        env:
+        - name: WS_PORT
+          value: "3001"
+        - name: REDIS_URL
+          value: "redis://redis:6379"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: jurisai-secrets
+              key: DATABASE_URL
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        livenessProbe:
+          tcpSocket:
+            port: 3001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jurisai-ws
+  namespace: jurisai
+spec:
+  selector:
+    app: jurisai-ws
+  ports:
+  - port: 3001
+    targetPort: 3001
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: jurisai-ws-hpa
+  namespace: jurisai
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: jurisai-ws
+  minReplicas: 3
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

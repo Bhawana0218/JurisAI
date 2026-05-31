@@ -1,4 +1,4 @@
-import { RAG_CONFIG } from "@/config/rag.config";
+import { RAG_CONFIG } from "@/components/config/rag.config";
 
 export interface Chunk {
   content: string;
@@ -24,8 +24,8 @@ export function chunkText(text: string): Chunk[] {
     const trimmed = paragraph.trim();
     if (!trimmed) continue;
 
-    const wouldBeLength = currentChunk.length + trimmed.length;
-    const wouldBeTokens = estimateTokenCount(wouldBeLength);
+    const wouldBeText = currentChunk ? `${currentChunk}\n\n${trimmed}` : trimmed;
+    const wouldBeTokens = estimateTokenCount(wouldBeText);
 
     if (wouldBeTokens > chunkSize && currentChunk) {
       chunks.push({

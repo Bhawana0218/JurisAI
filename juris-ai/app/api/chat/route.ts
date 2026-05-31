@@ -1,4 +1,4 @@
-import { openai } from "@ai-sdk/openai";
+import { getChatModel } from "@/lib/ai-provider";
 import {
   streamText,
   convertToModelMessages,
@@ -8,8 +8,10 @@ import type { AgentType } from "@prisma/client";
 
 import { auth } from "@/auth";
 import { orchestrateAgents, postChatMemoryUpdate } from "@/ai/agents/orchestrator";
-import { RAG_CONFIG } from "@/config/rag.config";
+import { RAG_CONFIG } from "@/components/config/rag.config";
 import { setTyping } from "@/features/realtime/services/typing.service";
+import { runQualityEvaluation } from "@/platform/evaluation/evaluation-orchestrator";
+
 import { publishEvent, RealtimeEvents } from "@/lib/realtime/publisher";
 import { channelForChat } from "@/lib/realtime/channels";
 import { assertRateLimit } from "@/lib/security/rate-limit";
@@ -23,24 +25,41 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const startTime = Date.now();
+  let chatId: string | undefined;
+  let organizationId: string | undefined;
+  let userId: string | undefined;
 
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return new Response("Unauthorized", { status: 401 });
     }
+    userId = session.user.id;
 
     const body = await req.json();
-    const { messages, chatId, documentIds, useRag = true, agentId, organizationId, language = "en" } = body;
+    const {
+      messages,
+      chatId: bodyChatId,
+      documentIds,
+      useRag = true,
+      agentId,
+      organizationId: bodyOrganizationId,
+      language = "en",
+    } = body;
+    const currentChatId = bodyChatId;
+    const currentOrganizationId = bodyOrganizationId;
+    const currentUserId = session.user.id;
+    chatId = currentChatId;
+    organizationId = currentOrganizationId;
+    userId = currentUserId;
 
     // Tenant safety (Phase A): verify org membership when organizationId is provided.
     if (organizationId) {
       const membership = await prisma.organizationMember.findUnique({
         where: {
           organizationId_userId: {
-            organizationId,
-            userId: session.user.id,
+            organizationId: currentOrganizationId,
+            userId: currentUserId,
           },
         },
       });
@@ -55,52 +74,55 @@ export async function POST(req: Request) {
     const rawMessages = messages as Array<Record<string, unknown>>;
     const normalizedMessages = rawMessages.map((m) => ({
       ...m,
-      parts: m.parts ?? [{ type: "text", text: m.content ?? "" }],
-    })) as Array<{ role: string; parts: { type: string; text: string }[] }>;
+      content: m.content ?? "",
+      parts: m.parts ?? [{ type: "text", text: (m.content as string) ?? "" }],
+    })) as Array<{ role: string; content: string; parts: { type: string; text: string }[] }>;
 
-    await assertRateLimit(session.user.id, "chat");
+    await assertRateLimit(currentUserId, "chat");
 
     const latestMessage = normalizedMessages[normalizedMessages.length - 1];
-    const userText = latestMessage.parts
-      .filter((p: { type: string; text?: string }) => p.type === "text")
-      .map((p: { text: string }) => p.text)
-      .join("");
+    const userText = Array.isArray(latestMessage.parts)
+      ? latestMessage.parts
+          .filter((p: { type: string; text?: string }) => p.type === "text")
+          .map((p: { text: string }) => p.text)
+          .join("")
+      : "";
 
-    if (chatId) {
-      void setTyping(chatId, session.user.id, true);
+    if (currentChatId) {
+      void setTyping(currentChatId, currentUserId, true);
     }
 
-    if (chatId && userText) {
+    if (currentChatId && userText) {
       const chat = await prisma.chat.findFirst({
-        where: { id: chatId, userId: session.user.id },
+        where: { id: currentChatId, userId: currentUserId },
       });
       if (!chat) return new Response("Chat not found", { status: 404 });
 
       await prisma.message.create({
-        data: { role: "USER", content: userText, chatId },
+        data: { role: "USER", content: userText, chatId: currentChatId },
       });
 
-      const prevRecord = await prisma.chat.findUnique({ where: { id: chatId }, select: { title: true } });
+      const prevRecord = await prisma.chat.findUnique({ where: { id: currentChatId }, select: { title: true } });
       if (prevRecord && prevRecord.title === "New conversation") {
         const autoTitle = userText.length > 60 ? userText.slice(0, 57) + "..." : userText;
-        await prisma.chat.update({ where: { id: chatId }, data: { title: autoTitle } });
+        await prisma.chat.update({ where: { id: currentChatId }, data: { title: autoTitle } });
       }
 
-      await publishEvent(channelForChat(chatId), {
+      await publishEvent(channelForChat(currentChatId), {
         type: RealtimeEvents.messageCreated,
         payload: { role: "user", content: userText },
-        userId: session.user.id,
+        userId: currentUserId,
       });
     }
 
     const orchestration = useRag
       ? await orchestrateAgents({
           query: userText,
-          userId: session.user.id,
-          chatId,
+          userId: currentUserId,
+          chatId: currentChatId,
           agentId: agentId as AgentType | undefined,
           documentIds: Array.isArray(documentIds) ? documentIds : undefined,
-          organizationId,
+          organizationId: currentOrganizationId,
           language,
         })
       : {
@@ -113,69 +135,84 @@ export async function POST(req: Request) {
           toolsUsed: [] as string[],
         };
 
-    const modelMessages = await convertToModelMessages(normalizedMessages);
+    const modelMessages = await convertToModelMessages(normalizedMessages as unknown as Array<Omit<UIMessage, 'id'>>);
 
     const result = streamText({
-      model: openai(RAG_CONFIG.chatModel),
+      model: getChatModel(RAG_CONFIG.chatModel),
       system: orchestration.systemPrompt,
       messages: modelMessages,
-      maxTokens: 4096,
-    });
-
-    return result.toUIMessageStreamResponse({
-      originalMessages: normalizedMessages,
-      headers: {
-        "X-Agent-Id": orchestration.primaryAgent,
-      },
-      onFinish: async ({ messages: finishedMessages }) => {
-        if (chatId) {
-          void setTyping(chatId, session.user.id, false);
+      maxOutputTokens: 4096,
+      onFinish: async ({ text: textContent }) => {
+        if (currentChatId) {
+          void setTyping(currentChatId, currentUserId, false);
         }
 
-        if (!chatId) return;
+        if (!currentChatId || !textContent) return;
 
-        const assistantMessage = finishedMessages.find((m: UIMessage) => m.role === "assistant");
-        const textContent = assistantMessage?.parts
-          ?.filter((part: { type: string }) => part.type === "text")
-          .map((part: { type: string; text: string }) => part.text)
-          .join("");
-
-        if (textContent) {
-          await prisma.message.create({
+        try {
+          // Persist assistant message once and capture its id for evaluation linking.
+          const created = await prisma.message.create({
             data: {
               role: "ASSISTANT",
               content: textContent,
-              chatId,
+              chatId: currentChatId,
               modelUsed: "GPT_4_1_MINI",
               metadata: {
                 agent: orchestration.primaryAgent,
                 citations: orchestration.citations,
               },
             },
+            select: { id: true },
           });
 
           await prisma.chat.update({
-            where: { id: chatId },
+            where: { id: currentChatId },
             data: { lastMessageAt: new Date(), agentType: orchestration.primaryAgent },
           });
 
-          await publishEvent(channelForChat(chatId), {
+          await publishEvent(channelForChat(currentChatId), {
             type: RealtimeEvents.messageCreated,
             payload: { role: "assistant", content: textContent },
-            userId: session.user.id,
+            userId: currentUserId,
           });
 
           void postChatMemoryUpdate({
-            userId: session.user.id,
-            organizationId,
+            userId: currentUserId,
+            organizationId: currentOrganizationId,
             userMessage: userText,
             assistantMessage: textContent,
           });
+
+          // Run evaluation (non-blocking).
+          void runQualityEvaluation({
+            organizationId: currentOrganizationId,
+            userId: currentUserId,
+            chatId: currentChatId,
+            messageId: created.id,
+            agentType: orchestration.primaryAgent,
+            promptVersionId: null,
+            query: userText,
+            assistantOutput: textContent,
+            retrievedCitations: orchestration.citations,
+            modelUsed: "GPT_4_1_MINI" as any,
+            retrievalTooling: { topK: orchestration.citations?.length ?? 0 },
+          });
+        } catch (persistError) {
+          console.error("[/api/chat] failed to persist assistant response", persistError);
         }
+      },
+    });
+
+    return result.toTextStreamResponse({
+      headers: {
+        "X-Agent-Id": orchestration.primaryAgent,
       },
     });
   } catch (error) {
     console.error("[/api/chat]", error);
+    if (chatId) {
+      void setTyping(chatId, userId ?? "", false);
+    }
     const msg = error instanceof Error ? error.message : String(error);
     return new Response(`Chat failed: ${msg}`, { status: 500 });
   }

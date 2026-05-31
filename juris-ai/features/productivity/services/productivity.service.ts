@@ -1,13 +1,13 @@
-import { openai } from "@ai-sdk/openai";
+import { getChatModel } from "@/lib/ai-provider";
 import { generateText } from "ai";
 import type { Prisma } from "@prisma/client";
 
-import { RAG_CONFIG } from "@/config/rag.config";
+import { RAG_CONFIG } from "@/components/config/rag.config";
 import { prisma } from "@/lib/prisma";
 
 export async function createAINote(userId: string, title: string, content: string) {
   const { text: summary } = await generateText({
-    model: openai(RAG_CONFIG.chatModel),
+    model: getChatModel(RAG_CONFIG.chatModel),
     prompt: `Summarize this legal note in 3 bullet points:\n${content.slice(0, 3000)}`,
   });
 
@@ -23,7 +23,7 @@ export async function generateTasksFromCase(userId: string, caseId: string) {
   if (!legalCase) throw new Error("Case not found");
 
   const { text } = await generateText({
-    model: openai(RAG_CONFIG.chatModel),
+    model: getChatModel(RAG_CONFIG.chatModel),
     prompt: `Generate 5 legal action tasks as JSON array [{title, description, dueInDays}] for case: ${legalCase.title}\n${legalCase.description ?? ""}`,
   });
 
@@ -61,7 +61,7 @@ export async function summarizeMeeting(
   transcript: string
 ) {
   const { text } = await generateText({
-    model: openai(RAG_CONFIG.chatModel),
+    model: getChatModel(RAG_CONFIG.chatModel),
     prompt: `Summarize this legal meeting. Provide summary + action items as JSON {summary, actionItems:[]}:\n${transcript.slice(0, 8000)}`,
   });
 
@@ -91,7 +91,7 @@ export async function draftEmail(
   params: { subject: string; context: string; tone?: string }
 ) {
   const { text } = await generateText({
-    model: openai(RAG_CONFIG.chatModel),
+    model: getChatModel(RAG_CONFIG.chatModel),
     prompt: `Draft a professional legal email. Subject: ${params.subject}. Context: ${params.context}. Tone: ${params.tone ?? "formal"}.`,
   });
 

@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  previewFeatures = ["postgresqlExtensions", "driverAdapters"]
 }
 
 datasource db {
@@ -37,6 +37,13 @@ enum AIModel {
   GPT_4
   GPT_4_TURBO
   GPT_4_1_MINI
+  GPT_4_O
+  GPT_4_1_NANO
+  CLAUDE_3_5_SONNET
+  CLAUDE_3_OPUS
+  LLAMA_3_1_405B
+  MIXTRAL_8X7B
+  CUSTOM
 }
 
 enum AgentType {
@@ -113,6 +120,137 @@ enum SyncOperationType {
   DELETE
 }
 
+// ─── Phase 10: Platform enums ──────────────────────────────────
+enum ApiKeyScope {
+  READ
+  WRITE
+  ADMIN
+  AGENT_EXECUTE
+  WORKFLOW_EXECUTE
+}
+
+enum WebhookEvent {
+  MESSAGE_CREATED
+  CHAT_CREATED
+  AGENT_EXECUTED
+  WORKFLOW_COMPLETED
+  WORKFLOW_FAILED
+  DOCUMENT_PROCESSED
+  DOCUMENT_FAILED
+  CASE_UPDATED
+  TASK_CREATED
+  TASK_COMPLETED
+  SUBSCRIPTION_CHANGED
+  USAGE_THRESHOLD
+  ERROR_OCCURRED
+}
+
+enum WebhookStatus {
+  ACTIVE
+  PAUSED
+  FAILED
+  DISABLED
+}
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+enum WorkflowStepType {
+  AI_AGENT
+  CONDITION
+  TRANSFORM
+  API_CALL
+  HUMAN_REVIEW
+  WEBHOOK
+  DELAY
+  SUB_WORKFLOW
+  NOTIFICATION
+  CODE_EXECUTION
+}
+
+enum PluginStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  BLOCKED
+  DEPRECATED
+}
+
+enum AgentPricingModel {
+  FREE
+  ONE_TIME
+  SUBSCRIPTION
+  PER_EXECUTION
+  TIERED
+  ENTERPRISE
+}
+
+enum AgentCategory {
+  LEGAL_RESEARCH
+  DOCUMENT_REVIEW
+  CASE_MANAGEMENT
+  COMPLIANCE
+  CONTRACT_ANALYSIS
+  DISCOVERY
+  LITIGATION
+  CORPORATE
+  INTELLECTUAL_PROPERTY
+  TAX
+  IMMIGRATION
+  REGULATORY
+  CUSTOM
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  TIMEOUT
+}
+
+enum GovernanceAction {
+  ALLOW
+  BLOCK
+  REVIEW
+  FLAG
+  ESCALATE
+  MASK
+  REDACT
+}
+
+enum AuditEventType {
+  API_CALL
+  AGENT_EXECUTION
+  WORKFLOW_EXECUTION
+  DATA_ACCESS
+  DATA_MODIFICATION
+  EXPORT
+  IMPORT
+  USER_LOGIN
+  USER_LOGOUT
+  ROLE_CHANGE
+  PERMISSION_CHANGE
+  SETTINGS_CHANGE
+  WEBHOOK_DELIVERY
+  API_KEY_CREATED
+  API_KEY_REVOKED
+  PLUGIN_INSTALLED
+  PLUGIN_REMOVED
+  BILLING_CHANGE
+  COMPLIANCE_CHECK
+  GOVERNANCE_ACTION
+  SSO_CONNECTION
+  EXPORT_DOWNLOAD
+}
+
 // ─── User & auth ─────────────────────────────────────────────
 model User {
   id       String  @id @default(cuid())
@@ -139,11 +277,23 @@ model User {
   notes       AINote[]
   calendarEvents CalendarEvent[]
   orgMembers  OrganizationMember[]
+  apiKeys     ApiKey[]
+  webhookConfigs WebhookConfig[]
+  agentSubmissions AgentSubmission[]
+  pluginInstallations PluginInstallation[]
+  workflows   Workflow[]
+  workflowExecutions WorkflowExecution[]
+  agentExecutions AgentExecution[]
+  auditLogs   AuditLog[]
+  governanceRules GovernanceRule[]
+  ssoConnections SsoConnection[]
+  billingProfiles BillingProfile[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([email])
+  @@index([role])
 }
 
 model Session {
@@ -160,7 +310,10 @@ model Organization {
   id   String @id @default(cuid())
   name String
   slug String @unique
-  settings Json?
+  settings   Json?
+  metadata   Json?
+  featureFlags String[]
+
   members  OrganizationMember[]
   chats    Chat[]
   documents Document[]
@@ -168,6 +321,16 @@ model Organization {
   presence UserPresence[]
   cases         LegalCase[]
   collaboration CollaborationRoom[]
+  webhookConfigs WebhookConfig[]
+  workflows  Workflow[]
+  apiKeys    ApiKey[]
+  auditLogs  AuditLog[]
+  governanceRules GovernanceRule[]
+  ssoConnections  SsoConnection[]
+  billingProfiles BillingProfile[]
+  pluginInstallations PluginInstallation[]
+  agentSubmissions    AgentSubmission[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -179,7 +342,12 @@ model OrganizationMember {
   userId         String
   user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
   role           OrgRole @default(MEMBER)
+  permissions    String[]
+  joinedAt       DateTime @default(now())
+
   @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
 }
 
 model Subscription {
@@ -195,10 +363,18 @@ model Subscription {
   monthlyTokensUsed Int @default(0)
   monthlyAgentLimit Int @default(100)
   monthlyAgentCalls Int @default(0)
+  monthlyApiCallLimit Int @default(1000)
+  monthlyApiCalls    Int @default(0)
   aiCreditsBalance  Int @default(0)
   currentPeriodEnd  DateTime
+  features          String[]
+  metadata          Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([stripeCustomerId])
 }
 
 // ─── Chat & messages ─────────────────────────────────────────
@@ -216,11 +392,16 @@ model Chat {
   lastMessageAt DateTime?
   isArchived Boolean @default(false)
   language   String @default("en")
+  tags       String[]
+  metadata   Json?
   collaboration CollaborationRoom?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@index([userId])
   @@index([organizationId])
+  @@index([lastMessageAt])
 }
 
 model Message {
@@ -234,9 +415,12 @@ model Message {
   metadata Json?
   clientId String?
   syncedAt DateTime?
+
   createdAt DateTime @default(now())
+
   @@index([chatId])
   @@index([clientId])
+  @@index([createdAt])
 }
 
 // ─── Documents & RAG ─────────────────────────────────────────
@@ -254,8 +438,14 @@ model Document {
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   chunks DocumentChunk[]
+  documentAnalyses DocumentAnalysis[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
 }
 
 model LegalKnowledge {
@@ -266,8 +456,16 @@ model LegalKnowledge {
   source   String?
   language String @default("en")
   isPublished Boolean @default(true)
+  metadata Json?
   chunks DocumentChunk[]
+  knowledgeGraphEdgesFrom KnowledgeGraphEdge[] @relation("KnowledgeFrom")
+  knowledgeGraphEdgesTo   KnowledgeGraphEdge[] @relation("KnowledgeTo")
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([language])
 }
 
 model DocumentChunk {
@@ -281,7 +479,569 @@ model DocumentChunk {
   document   Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
   legalKnowledgeId String?
   legalKnowledge   LegalKnowledge? @relation(fields: [legalKnowledgeId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
+
+  @@index([documentId])
+  @@index([legalKnowledgeId])
+}
+
+// ─── Phase 10: Document Analysis ──────────────────────────────
+model DocumentAnalysis {
+  id             String @id @default(cuid())
+  documentId     String
+  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  analysisType   String
+  summary        String? @db.Text
+  keyFindings    Json?
+  riskScore      Float?
+  parties        Json?
+  obligations    Json?
+  clauses        Json?
+  sentiment      String?
+  language       String @default("en")
+  modelUsed      AIModel
+  processingTime Int?
+  metadata       Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([documentId])
+  @@index([analysisType])
+}
+
+// ─── Phase 10: Knowledge Graph ────────────────────────────────
+model KnowledgeGraphNode {
+  id        String @id @default(cuid())
+  entityId  String
+  entityType String
+  label     String
+  type      String
+  properties Json?
+  embedding Json?
+  metadata   Json?
+
+  edgesFrom KnowledgeGraphEdge[] @relation("EdgeFrom")
+  edgesTo   KnowledgeGraphEdge[] @relation("EdgeTo")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entityType])
+  @@index([label])
+  @@index([type])
+}
+
+model KnowledgeGraphEdge {
+  id          String @id @default(cuid())
+  fromNodeId  String
+  fromNode    KnowledgeGraphNode @relation("EdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNodeId    String
+  toNode      KnowledgeGraphNode @relation("EdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+  relationType String
+  weight       Float @default(1.0)
+  properties   Json?
+  metadata     Json?
+  sourceId     String?
+  fromKnowledgeId String?
+  fromKnowledge   LegalKnowledge? @relation("KnowledgeFrom", fields: [fromKnowledgeId], references: [id], onDelete: SetNull)
+  toKnowledgeId   String?
+  toKnowledge     LegalKnowledge? @relation("KnowledgeTo", fields: [toKnowledgeId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([fromNodeId])
+  @@index([toNodeId])
+  @@index([relationType])
+  @@index([sourceId])
+}
+
+// ─── Phase 10: Developer API Keys ─────────────────────────────
+model ApiKey {
+  id             String @id @default(cuid())
+  name           String
+  keyPrefix      String
+  keyHash        String @unique
+  scopes         ApiKeyScope[]
+  userId         String?
+  user           User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rateLimit      Int @default(60)
+  allowedIpPatterns String[]
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  isRevoked      Boolean @default(false)
+  revokedAt      DateTime?
+  metadata       Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([keyHash])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([keyPrefix])
+}
+
+// ─── Phase 10: Webhooks ───────────────────────────────────────
+model WebhookConfig {
+  id             String @id @default(cuid())
+  name           String
+  url            String
+  secret         String?
+  events         WebhookEvent[]
+  status         WebhookStatus @default(ACTIVE)
+  retryCount     Int @default(3)
+  timeoutMs      Int @default(10000)
+  format         String @default("json")
+  filterExpression String?
+  headers        Json?
+  userId         String?
+  user           User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  deliveries WebhookDelivery[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+model WebhookDelivery {
+  id             String @id @default(cuid())
+  webhookConfigId String
+  webhookConfig  WebhookConfig @relation(fields: [webhookConfigId], references: [id], onDelete: Cascade)
+  event          WebhookEvent
+  payload        Json
+  responseCode   Int?
+  responseBody   String?
+  status         String @default("pending")
+  attempt        Int @default(1)
+  maxAttempts    Int @default(3)
+  nextRetryAt    DateTime?
+  durationMs     Int?
+  errorMessage   String?
+  completedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([webhookConfigId])
+  @@index([status])
+  @@index([nextRetryAt])
+}
+
+// ─── Phase 10: AI Agent Marketplace ───────────────────────────
+model AgentSubmission {
+  id             String @id @default(cuid())
+  name           String
+  description    String @db.Text
+  shortDescription String?
+  category       AgentCategory
+  pricingModel   AgentPricingModel @default(FREE)
+  price          Float @default(0)
+  version        String @default("1.0.0")
+  status         PluginStatus @default(PENDING)
+  icon           String?
+  coverImage     String?
+  documentation  String? @db.Text
+  configuration  Json?
+  tools          String[]
+  models         AIModel[]
+  supportedLanguages String[]
+  tags           String[]
+  rating         Float @default(0)
+  totalInstalls  Int @default(0)
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reviews        AgentReview[]
+  installations  PluginInstallation[]
+  webhookConfigs Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([userId])
+  @@index([totalInstalls])
+}
+
+model AgentReview {
+  id         String @id @default(cuid())
+  agentId    String
+  agent      AgentSubmission @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  userId     String
+  rating     Int
+  comment    String? @db.Text
+  createdAt  DateTime @default(now())
+
+  @@unique([agentId, userId])
+  @@index([agentId])
+}
+
+model PluginInstallation {
+  id             String @id @default(cuid())
+  agentId        String
+  agent          AgentSubmission @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  configuration  Json?
+  enabled        Boolean @default(true)
+  lastUsedAt     DateTime?
+  usageCount     Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([agentId, organizationId])
+  @@index([organizationId])
+}
+
+// ─── Phase 10: Workflow Engine ────────────────────────────────
+model Workflow {
+  id             String @id @default(cuid())
+  name           String
+  description    String? @db.Text
+  status         WorkflowStatus @default(DRAFT)
+  version        Int @default(1)
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  trigger        Json?
+  steps          WorkflowStep[]
+  variables      Json?
+  errorHandling  Json?
+  timeoutMs      Int @default(300000)
+  tags           String[]
+  metadata       Json?
+
+  executions WorkflowExecution[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([userId])
+}
+
+model WorkflowStep {
+  id          String @id @default(cuid())
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  name        String
+  type        WorkflowStepType
+  order       Int
+  config      Json?
+  inputMapping  Json?
+  outputMapping Json?
+  retryConfig   Json?
+  condition     String?
+  timeoutMs     Int?
+  metadata      Json?
+  agentId       String? @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workflowId])
+  @@index([type])
+}
+
+model WorkflowExecution {
+  id             String @id @default(cuid())
+  workflowId     String
+  workflow       Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  status         ExecutionStatus @default(PENDING)
+  trigger        String @default("manual")
+  input          Json?
+  output         Json?
+  error          Json?
+  currentStep    Int @default(0)
+  totalSteps     Int @default(0)
+  startedAt      DateTime?
+  completedAt    DateTime?
+  durationMs     Int?
+  userId         String?
+  user           User? @relation(fields: [userId], references: [id])
+  organizationId String?
+  metadata       Json?
+
+  stepResults    WorkflowStepResult[]
+
+  createdAt DateTime @default(now())
+
+  @@index([workflowId])
+  @@index([status])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model WorkflowStepResult {
+  id              String @id @default(cuid())
+  executionId     String
+  execution       WorkflowExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  stepId          String
+  stepName        String
+  stepType        WorkflowStepType
+  order           Int
+  status          ExecutionStatus @default(PENDING)
+  input           Json?
+  output          Json?
+  error           Json?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationMs      Int?
+  retryAttempt    Int @default(0)
+  metadata        Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([executionId])
+  @@index([status])
+}
+
+// ─── Phase 10: Agent Execution ────────────────────────────────
+model AgentExecution {
+  id             String @id @default(cuid())
+  agentType      AgentType
+  userId         String?
+  user           User? @relation(fields: [userId], references: [id])
+  organizationId String?
+  input          Json?
+  output         Json?
+  status         ExecutionStatus @default(PENDING)
+  modelUsed      AIModel?
+  tokensUsed     Int @default(0)
+  promptTokens   Int @default(0)
+  completionTokens Int @default(0)
+  durationMs     Int?
+  cost           Float @default(0)
+  error          String? @db.Text
+  citations      Json?
+  toolsCalled    String[]
+  workflowExecutionId String?
+  metadata       Json?
+
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+
+  @@index([userId])
+  @@index([agentType])
+  @@index([status])
+  @@index([createdAt])
+  @@index([workflowExecutionId])
+}
+
+// ─── Phase 10: Audit & Compliance ─────────────────────────────
+model AuditLog {
+  id             String @id @default(cuid())
+  eventType      AuditEventType
+  actorId        String?
+  actor          User? @relation(fields: [actorId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  resourceId     String?
+  resourceType   String?
+  action         String?
+  details        Json?
+  ipAddress      String?
+  userAgent      String?
+  severity       String @default("info")
+  metadata       Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([actorId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([resourceType, resourceId])
+}
+
+// ─── Phase 10: AI Governance ──────────────────────────────────
+model GovernanceRule {
+  id             String @id @default(cuid())
+  name           String
+  description    String? @db.Text
+  ruleType       String
+  action         GovernanceAction
+  priority       Int @default(100)
+  pattern        String?
+  conditions     Json?
+  configuration  Json?
+  enabled        Boolean @default(true)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User? @relation(fields: [userId], references: [id])
+  hitCount       Int @default(0)
+  lastTriggeredAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([ruleType])
+  @@index([enabled])
+}
+
+// ─── Phase 10: Enterprise SSO ─────────────────────────────────
+model SsoConnection {
+  id             String @id @default(cuid())
+  provider       String
+  clientId       String
+  clientSecret   String?
+  issuerUrl      String?
+  domains        String[]
+  metadataUrl    String?
+  certificate    String?
+  enabled        Boolean @default(true)
+  defaultRole    OrgRole @default(MEMBER)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User? @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, organizationId])
+  @@index([organizationId])
+}
+
+// ─── Phase 10: Billing & Metering ─────────────────────────────
+model BillingProfile {
+  id               String @id @default(cuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId           String?
+  user             User? @relation(fields: [userId], references: [id])
+  stripeCustomerId String? @unique
+  paymentMethodId  String?
+  billingEmail     String?
+  billingAddress   Json?
+  taxId            String?
+  invoicePrefix    String?
+  currency         String @default("usd")
+  metadata         Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+model UsageMeter {
+  id             String @id @default(cuid())
+  organizationId String?
+  userId         String?
+  metric         String
+  value          Float @default(0)
+  unit           String @default("count")
+  dimensions     Json?
+  recordedAt     DateTime @default(now())
+
+  @@index([organizationId, metric, recordedAt])
+  @@index([userId, metric, recordedAt])
+  @@index([recordedAt])
+}
+
+model UsageAlert {
+  id             String @id @default(cuid())
+  organizationId String
+  metric         String
+  threshold      Float
+  currentValue   Float
+  status         String @default("ACTIVE")
+  notifiedAt     DateTime?
+  metadata       Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+// ─── Phase 10: Plugin System ──────────────────────────────────
+model PluginRegistry {
+  id             String @id @default(cuid())
+  name           String @unique
+  description    String? @db.Text
+  version        String @default("1.0.0")
+  author         String
+  homepage       String?
+  entryPoint     String
+  permissions    Json?
+  hooks          String[]
+  configSchema   Json?
+  dependencies   Json?
+  status         PluginStatus @default(PENDING)
+  downloads      Int @default(0)
+  rating         Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([name])
+}
+
+// ─── Phase 10: AI Memory System ───────────────────────────────
+model AiMemoryEntry {
+  id             String @id @default(cuid())
+  userId         String
+  sessionId      String?
+  memoryType     String
+  content        String @db.Text
+  embedding      Unsupported("vector(1536)")?
+  importance     Float @default(0.5)
+  context        Json?
+  metadata       Json?
+  expiresAt      DateTime?
+  lastAccessedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, memoryType])
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
+// ─── Phase 10: Distributed Locking ────────────────────────────
+model DistributedLock {
+  id        String @id @default(cuid())
+  key       String @unique
+  owner     String
+  ttl       Int @default(30000)
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([key])
+  @@index([expiresAt])
+}
+
+// ─── Phase 10: Feature Flags ──────────────────────────────────
+model FeatureFlag {
+  id     String @id @default(cuid())
+  name   String @unique
+  enabled Boolean @default(false)
+  rules  Json?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ─── Phase 9: Mobile & real-time ─────────────────────────────
@@ -295,6 +1055,7 @@ model UserDevice {
   appVersion String?
   biometricEnabled Boolean @default(false)
   lastSyncAt DateTime?
+
   @@unique([userId, deviceId])
   @@index([pushToken])
 }
@@ -308,6 +1069,7 @@ model UserPresence {
   status         PresenceStatus @default(OFFLINE)
   device         DevicePlatform?
   lastSeenAt     DateTime @default(now())
+
   @@index([userId])
   @@index([organizationId])
 }
@@ -323,7 +1085,9 @@ model SyncOperation {
   payload        Json
   synced         Boolean @default(false)
   conflictResolved Boolean @default(false)
+
   createdAt      DateTime @default(now())
+
   @@index([userId, synced])
   @@index([clientId])
 }
@@ -336,6 +1100,7 @@ model CollaborationRoom {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   activeUsers    Json?
+
   createdAt      DateTime @default(now())
 }
 
@@ -353,9 +1118,15 @@ model LegalCase {
   caseNumber     String?
   timeline       Json?
   metadata       Json?
+  tags           String[]
   tasks          LegalTask[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
 }
 
 model LegalTask {
@@ -369,8 +1140,15 @@ model LegalTask {
   status      TaskStatus @default(TODO)
   dueAt       DateTime?
   aiGenerated Boolean @default(false)
+  priority    Int @default(2)
+  assigneeId  String?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([caseId])
+  @@index([status])
 }
 
 model AINote {
@@ -381,6 +1159,8 @@ model AINote {
   content   String @db.Text
   summary   String? @db.Text
   tags      String[]
+  isPinned  Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -396,7 +1176,8 @@ model CalendarEvent {
   reminderAt  DateTime?
   caseId      String?
   metadata    Json?
-  createdAt   DateTime @default(now())
+
+  createdAt DateTime @default(now())
 }
 
 model MeetingSummary {
@@ -406,7 +1187,8 @@ model MeetingSummary {
   transcript  String? @db.Text
   summary     String @db.Text
   actionItems Json?
-  createdAt   DateTime @default(now())
+
+  createdAt DateTime @default(now())
 }
 
 model EmailDraft {
@@ -416,6 +1198,7 @@ model EmailDraft {
   body      String @db.Text
   recipients Json?
   metadata  Json?
+
   createdAt DateTime @default(now())
 }
 
@@ -424,13 +1207,23 @@ model AIUsageLog {
   id           String @id @default(cuid())
   userId       String?
   user         User? @relation(fields: [userId], references: [id])
+  organizationId String?
   model        AIModel
   promptTokens Int
   completionTokens Int
   totalTokens  Int
   operation    String?
   agentType    AgentType?
+  cost         Float @default(0)
+  durationMs   Int?
+  metadata     Json?
+
   createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([model])
 }
 
 model AgentSession {
@@ -441,5 +1234,204 @@ model AgentSession {
   query           String @db.Text
   citations       Json?
   toolsUsed       String[]
+  metadata        Json?
+
   createdAt       DateTime @default(now())
 }
+
+// ─── Phase 12: Self-evolving quality + prompt experimentation ─────────────────────────
+enum QualityEvaluationStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum QualityGateAction {
+  ALLOW
+  FLAG
+  ESCALATE
+  BLOCK
+}
+
+model PromptRegistry {
+  id          String @id @default(cuid())
+  key         String @unique
+  name        String
+  description String? @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions    PromptVersion[]
+  experiments PromptExperiment[]
+}
+
+model PromptVersion {
+  id              String @id @default(cuid())
+  registryId      String
+  registry        PromptRegistry @relation(fields: [registryId], references: [id], onDelete: Cascade)
+  version         String
+  agentType       AgentType
+  language        String?
+  systemPrompt    String @db.Text
+  description     String? @db.Text
+  isActive        Boolean @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  experimentsAsA  PromptExperiment[] @relation("VariantA")
+  experimentsAsB  PromptExperiment[] @relation("VariantB")
+
+  @@index([registryId])
+  @@index([agentType])
+}
+
+model PromptExperiment {
+  id                  String @id @default(cuid())
+  name                String
+  description         String? @db.Text
+  registryId          String
+  registry            PromptRegistry @relation(fields: [registryId], references: [id], onDelete: Cascade)
+  startAt             DateTime
+  endAt               DateTime?
+  isActive            Boolean @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Two candidates for A/B for now (can be generalized later)
+  variantAId          String
+  variantBId          String
+  variantA            PromptVersion @relation("VariantA", fields: [variantAId], references: [id])
+  variantB            PromptVersion @relation("VariantB", fields: [variantBId], references: [id])
+
+  assignments         PromptExperimentAssignment[]
+
+  @@index([registryId])
+  @@index([isActive])
+}
+
+model PromptExperimentAssignment {
+  id            String @id @default(cuid())
+  experimentId  String
+  experiment    PromptExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  chatId        String?
+  messageId     String?
+  userId        String
+  organizationId String?
+  variant       String // "A" | "B"
+  createdAt     DateTime @default(now())
+
+  @@index([experimentId])
+  @@index([organizationId])
+  @@index([chatId])
+}
+
+model QualityEvaluation {
+  id               String @id @default(cuid())
+  organizationId   String?
+  userId           String?
+  chatId           String?
+  messageId        String?
+
+  agentType        AgentType?
+  promptVersionId String?
+
+  query            String? @db.Text
+  assistantOutput  String? @db.Text
+  retrievedCitations Json?
+  modelUsed        AIModel?
+
+  status           QualityEvaluationStatus @default(PENDING)
+  startedAt        DateTime?
+  completedAt      DateTime?
+  error            String? @db.Text
+
+  // Aggregated scores (0..1)
+  retrievalScore         Float? @db.DoublePrecision
+  citationScore          Float? @db.DoublePrecision
+  hallucinationRiskScore Float? @db.DoublePrecision
+  legalCorrectnessScore Float? @db.DoublePrecision
+  reasoningQualityScore Float? @db.DoublePrecision
+  responseUsefulnessScore Float? @db.DoublePrecision
+  complianceScore         Float? @db.DoublePrecision
+
+  // Quality gate
+  gateAction       QualityGateAction @default(FLAG)
+  gateReason       String? @db.Text
+  gateDetails      Json?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  citationsValidation CitationValidation[]
+  hallucinationDetections HallucinationDetection[]
+  retrievalAssessments RetrievalQualityAssessment[]
+
+  @@index([organizationId, createdAt])
+  @@index([chatId])
+  @@index([status])
+}
+
+model RetrievalQualityAssessment {
+  id                String @id @default(cuid())
+  evaluationId      String
+  evaluation        QualityEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  score             Float? @db.DoublePrecision
+  coverage          Float? @db.DoublePrecision
+  relevance         Float? @db.DoublePrecision
+  contextDensity    Float? @db.DoublePrecision
+  evidenceIds       String[]
+  details           Json?
+  createdAt         DateTime @default(now())
+
+  @@index([evaluationId])
+}
+
+model CitationValidation {
+  id                String @id @default(cuid())
+  evaluationId      String
+  evaluation        QualityEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  score             Float? @db.DoublePrecision
+  citationCount     Int @default(0)
+  failedCitations   Int @default(0)
+  details           Json?
+  createdAt         DateTime @default(now())
+
+  @@index([evaluationId])
+}
+
+model HallucinationDetection {
+  id                String @id @default(cuid())
+  evaluationId      String
+  evaluation        QualityEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  score             Float? @db.DoublePrecision // 0..1 risk
+  unsupportedClaims Int @default(0)
+  contradictions    Int @default(0)
+  details           Json?
+  createdAt         DateTime @default(now())
+
+  @@index([evaluationId])
+}
+
+// User feedback connects ratings to evaluation outcomes.
+model UserFeedback {
+  id                String @id @default(cuid())
+  organizationId    String?
+  userId            String?
+  chatId            String?
+  messageId         String?
+  evaluationId      String?
+
+  // 1..5 or -1..1 depending on UI; keep both
+  rating            Int?
+  satisfactionScore Float? @db.DoublePrecision
+  usefulness         Boolean?
+  notes             String? @db.Text
+
+  createdAt         DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([chatId])
+  @@index([evaluationId])
+}
+

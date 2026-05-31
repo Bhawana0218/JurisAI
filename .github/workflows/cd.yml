@@ -1,0 +1,162 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+
+env:
+  DOCKER_REGISTRY: gcr.io
+  GAR_LOCATION: us-central1
+  GAR_REPOSITORY: jurisai
+  PROJECT_ID: jurisai-production
+  NODE_VERSION: "22"
+
+jobs:
+  docker-build:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      matrix:
+        service: [web, ws-server, worker]
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
+
+      - name: Set image tag
+        id: tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --target runner \
+            --tag ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/jurisai-${{ matrix.service }}:${{ steps.tag.outputs.tag }} \
+            --tag ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/jurisai-${{ matrix.service }}:latest \
+            --build-arg SERVICE=${{ matrix.service }} \
+            -f Dockerfile .
+
+      - name: Push Docker images
+        run: |
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/jurisai-${{ matrix.service }}:${{ steps.tag.outputs.tag }}
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/jurisai-${{ matrix.service }}:latest
+
+  deploy:
+    name: Deploy to Kubernetes
+    needs: docker-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: jurisai-cluster
+          location: us-central1
+
+      - name: Set image tag
+        id: tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy with Kustomize
+        run: |
+          cd infrastructure/k8s/overlays/production
+          kustomize edit set image \
+            gcr.io/${{ env.PROJECT_ID }}/jurisai-web=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/jurisai-web:${{ steps.tag.outputs.tag }} \
+            gcr.io/${{ env.PROJECT_ID }}/jurisai-ws=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/jurisai-ws:${{ steps.tag.outputs.tag }} \
+            gcr.io/${{ env.PROJECT_ID }}/jurisai-worker=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/jurisai-worker:${{ steps.tag.outputs.tag }}
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kustomize build infrastructure/k8s/overlays/production | kubectl apply -f -
+          kubectl rollout status deployment/jurisai-web -n jurisai --timeout=5m
+          kubectl rollout status deployment/jurisai-ws -n jurisai --timeout=3m
+          kubectl rollout status deployment/jurisai-worker -n jurisai --timeout=3m
+
+  migrate:
+    name: Run Database Migrations
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: jurisai-cluster
+          location: us-central1
+
+      - name: Run Prisma migrations
+        run: |
+          kubectl run prisma-migrate --image=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/jurisai-web:${{ github.sha }} \
+            --restart=Never \
+            --command -- npx prisma migrate deploy --schema=juris-ai/prisma/schema.prisma
+          kubectl wait --for=condition=complete job/prisma-migrate --timeout=120s || true
+          kubectl delete pod prisma-migrate || true
+
+  notify:
+    name: Notify Deployment
+    needs: [deploy, migrate]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify on success
+        if: ${{ needs.deploy.result == 'success' }}
+        uses: slackapi/slack-github-action@v1.26.1
+        with:
+          payload: |
+            {
+              "text": "✅ JurisAI deployment *${{ github.sha }}* completed successfully\nEnvironment: Production\nDeployed by: ${{ github.actor }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify on failure
+        if: ${{ needs.deploy.result != 'success' }}
+        uses: slackapi/slack-github-action@v1.26.1
+        with:
+          payload: |
+            {
+              "text": "❌ JurisAI deployment *${{ github.sha }}* FAILED\nEnvironment: Production\nDeployed by: ${{ github.actor }}\nCheck: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 export function useRealtimeChannel(channel: string | null) {
   const [events, setEvents] = useState<unknown[]>([]);
   const [connected, setConnected] = useState(false);
-  const sinceRef = useRef<string | undefined>();
+  const sinceRef = useRef<string | undefined>(undefined);
 
   const connect = useCallback(() => {
     if (!channel) return;

@@ -2,8 +2,6 @@
 
 import * as React from "react";
 import { Send } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 export type ChatInputProps = {
@@ -15,7 +13,6 @@ export type ChatInputProps = {
 
 export function ChatInput({ value, onChange, onSend, isLoading }: ChatInputProps) {
   const [isComposing, setIsComposing] = React.useState(false);
-
   const canSend = value.trim().length > 0 && !isLoading;
 
   return (
@@ -31,7 +28,7 @@ export function ChatInput({ value, onChange, onSend, isLoading }: ChatInputProps
         <Textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Ask JurisAI… e.g., Draft a complaint for consumer refund"
+          placeholder="Ask JurisAI… e.g., How do I file an FIR for cybercrime?"
           minRows={1}
           maxRows={6}
           onCompositionStart={() => setIsComposing(true)}
@@ -43,16 +40,25 @@ export function ChatInput({ value, onChange, onSend, isLoading }: ChatInputProps
               void onSend();
             }
           }}
+          className="w-full resize-none rounded-xl border border-[#162d58] bg-[#0a1628] px-4 py-3 text-sm text-white placeholder-[#2a4f96] outline-none transition focus:border-[#4a72c4] focus:ring-1 focus:ring-[#4a72c4]/40"
         />
-        <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
-          Tip: press <span className="font-medium">Ctrl/⌘ + Enter</span> to send.
+        <div className="mt-1.5 text-[11px] text-[#2a4f96]">
+          Press <span className="font-medium text-[#4a72c4]">Ctrl/⌘ + Enter</span> to send
         </div>
       </div>
 
-      <Button type="submit" disabled={!canSend} className="h-11 w-11 rounded-xl bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200">
-        <Send className="h-4 w-4" />
-      </Button>
+      <button
+        type="submit"
+        disabled={!canSend}
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#2a4f96] to-[#1e3a70] text-white shadow-lg shadow-[#2a4f96]/20 transition hover:from-[#4a72c4] hover:to-[#2a4f96] disabled:opacity-40"
+        aria-label="Send message"
+      >
+        {isLoading ? (
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+        ) : (
+          <Send className="h-4 w-4" />
+        )}
+      </button>
     </form>
   );
 }
-

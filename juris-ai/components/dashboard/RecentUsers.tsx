@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock } from "lucide-react";
+import { Activity } from "lucide-react";
 
 interface RecentUsersProps {
   dailyChats: Array<{ date: string; count: number }>;
@@ -11,31 +11,39 @@ export function RecentUsers({ dailyChats }: RecentUsersProps) {
   const maxCount = Math.max(...recent.map((d) => d.count), 1);
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="rounded-2xl border border-[#162d58] bg-[#0a1628] p-5">
       <div className="flex items-center justify-between">
-        <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Daily Chat Activity</div>
-        <Clock className="h-4 w-4 text-zinc-400" />
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#2a4f96] to-[#162d58]">
+            <Activity className="h-3.5 w-3.5 text-[#c9a84c]" />
+          </div>
+          <div className="text-sm font-semibold text-white">Daily Chat Activity</div>
+        </div>
+        <span className="rounded-full border border-[#162d58] bg-[#050d1a] px-2.5 py-0.5 text-[10px] text-[#7aa0d8]">
+          Last 7 days
+        </span>
       </div>
-      <div className="mt-4">
+
+      <div className="mt-5">
         {recent.length === 0 ? (
-          <div className="py-6 text-center text-xs text-zinc-400">No activity yet</div>
+          <div className="py-8 text-center text-xs text-[#4a72c4]">No activity yet</div>
         ) : (
           <div className="flex items-end gap-2">
-            {recent.map((day) => (
-              <div key={day.date} className="flex flex-1 flex-col items-center gap-1">
-                <div className="text-xs text-zinc-500">{day.count}</div>
-                <div
-                  className="w-full rounded-md bg-zinc-900 dark:bg-zinc-100"
-                  style={{
-                    height: `${Math.max(4, (day.count / maxCount) * 60)}px`,
-                    opacity: 0.3 + (day.count / maxCount) * 0.7,
-                  }}
-                />
-                <div className="text-[10px] text-zinc-400">
-                  {new Date(day.date).toLocaleDateString("en-IN", { weekday: "short" })}
+            {recent.map((day) => {
+              const heightPct = Math.max(8, (day.count / maxCount) * 100);
+              return (
+                <div key={day.date} className="flex flex-1 flex-col items-center gap-1.5">
+                  <div className="text-[10px] font-medium text-[#7aa0d8]">{day.count}</div>
+                  <div
+                    className="w-full rounded-md bg-gradient-to-t from-[#2a4f96] to-[#4a72c4]"
+                    style={{ height: `${heightPct * 0.6}px` }}
+                  />
+                  <div className="text-[10px] text-[#4a72c4]">
+                    {new Date(day.date).toLocaleDateString("en-IN", { weekday: "short" })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

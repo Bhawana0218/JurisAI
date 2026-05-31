@@ -1,5 +1,6 @@
 {
   "name": "jurisai-platform",
+  "version": "10.0.0",
   "private": true,
   "workspaces": [
     "juris-ai",
@@ -10,7 +11,34 @@
     "dev:web": "npm run dev --workspace=juris-ai",
     "dev:mobile": "npm run start --workspace=@jurisai/mobile",
     "dev:ws": "npm run dev:ws --workspace=juris-ai",
+    "dev:worker": "tsx juris-ai/platform/workers/background/index.ts",
+    "dev:temporal": "tsx juris-ai/platform/workers/temporal/index.ts",
+    "dev:all": "concurrently \"npm run dev:web\" \"npm run dev:ws\" \"npm run dev:worker\"",
     "build:web": "npm run build --workspace=juris-ai",
-    "test": "npm run test --workspace=juris-ai"
+    "build:all": "npm run build:web",
+    "start": "npm run start --workspace=juris-ai",
+    "lint": "npm run lint --workspace=juris-ai",
+    "test": "npm run test --workspace=juris-ai",
+    "test:coverage": "npm run test:coverage --workspace=juris-ai",
+    "db:generate": "prisma generate --schema=juris-ai/prisma/schema.prisma",
+    "db:migrate": "prisma migrate deploy --schema=juris-ai/prisma/schema.prisma",
+    "db:migrate:dev": "prisma migrate dev --schema=juris-ai/prisma/schema.prisma",
+    "db:seed": "tsx juris-ai/scripts/migrations/seed-platform.ts",
+    "db:studio": "prisma studio --schema=juris-ai/prisma/schema.prisma",
+    "deploy:staging": "./scripts/deployment/deploy.sh staging",
+    "deploy:production": "./scripts/deployment/deploy.sh production",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "k8s:apply": "kustomize build infrastructure/k8s/overlays/production | kubectl apply -f -",
+    "k8s:staging": "kustomize build infrastructure/k8s/overlays/staging | kubectl apply -f -",
+    "ci:all": "npm run test && npm run lint && npm run build:web",
+    "postinstall": "prisma generate --schema=juris-ai/prisma/schema.prisma && npm run build --workspace=packages/shared"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "prisma": "^7.8.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.0.0"
   }
 }

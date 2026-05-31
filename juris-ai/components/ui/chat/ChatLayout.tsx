@@ -10,19 +10,19 @@ export type ChatLayoutProps = {
 
 export function ChatLayout({ sidebar, header, children }: ChatLayoutProps) {
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto flex h-screen max-w-[1280px] gap-0 bg-zinc-50 dark:bg-black">
-        <aside className="w-[320px] shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/50 backdrop-blur">
-          {sidebar}
-        </aside>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="shrink-0 border-b border-zinc-200 bg-white/70 p-4 dark:border-zinc-800 dark:bg-zinc-950/50 backdrop-blur">
-            {header}
-          </header>
-          <main className="flex min-h-0 flex-1">{children}</main>
-        </div>
+    <div className="flex h-full">
+      {/* Sidebar */}
+      <aside className="w-72 shrink-0 border-r border-[#162d58] bg-[#050d1a]">
+        {sidebar}
+      </aside>
+
+      {/* Main */}
+      <div className="flex min-w-0 flex-1 flex-col bg-[#050d1a]">
+        <header className="shrink-0 border-b border-[#162d58] bg-[#0a1628] px-5 py-3.5">
+          {header}
+        </header>
+        <main className="flex min-h-0 flex-1 overflow-hidden">{children}</main>
       </div>
     </div>
   );
 }
-

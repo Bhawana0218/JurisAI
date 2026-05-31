@@ -21,11 +21,50 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  temporal:
+    image: temporalio/auto-setup:latest
+    ports:
+      - "7233:7233"
+      - "8233:8233"
+    environment:
+      DB: postgresql
+      DB_PORT: 5432
+      POSTGRES_USER: jurisai
+      POSTGRES_PASSWORD: jurisai_secret
+      POSTGRES_DB: jurisai_temporal
+      TEMPORAL_NAMESPACE: jurisai
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   web:
     build:
@@ -40,11 +79,15 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       INTERNAL_JOBS_SECRET: local-dev-jobs-secret
       WS_PORT: "3001"
+      KAFKA_BROKERS: kafka:9092
+      TEMPORAL_HOST: temporal:7233
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      kafka:
+        condition: service_started
     restart: unless-stopped
 
   ws-server:
@@ -58,10 +101,31 @@ services:
       WS_PORT: "3001"
       DATABASE_URL: postgresql://jurisai:jurisai_secret@postgres:5432/jurisai
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      REDIS_URL: redis://redis:6379
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npx tsx juris-ai/platform/workers/background/index.ts
+    environment:
+      DATABASE_URL: postgresql://jurisai:jurisai_secret@postgres:5432/jurisai
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      UPSTASH_REDIS_REST_URL: http://redis:6379
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
 
 volumes:
   pgdata:
+  redis-data:
