@@ -1,11 +1,7 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "rootDirectory": "juris-ai",
-  "installCommand": "cd .. && pnpm install --frozen-lockfile=false",
   "buildCommand": "pnpm run build",
-  "outputDirectory": ".next",
-  "env": {
-    "PRISMA_GENERATE_DATAPROXY": "false"
-  }
+  "installCommand": "pnpm install --frozen-lockfile=false",
+  "outputDirectory": ".next"
 }
