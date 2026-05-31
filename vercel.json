@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "rootDirectory": "juris-ai",
+  "framework": "nextjs",
+  "installCommand": "pnpm install --frozen-lockfile=false --ignore-scripts",
+  "buildCommand": "pnpm --filter juris-ai run build",
+  "outputDirectory": ".next"
+}
