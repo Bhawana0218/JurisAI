@@ -220,7 +220,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
       {/* Sidebar header */}
       <div className="flex items-center justify-between border-b border-[#162d58] px-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-br from-[#2a4f96] to-[#162d58]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#2a4f96] to-[#162d58]">
             <Scale className="h-4 w-4 text-[#c9a84c]" />
           </div>
           <span className="text-sm font-semibold text-white">Conversations</span>
@@ -251,7 +251,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
             <p className="mt-4 text-sm text-[#4a72c4]">No conversations yet</p>
             <button
               onClick={newChat}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-linear-to-r from-[#2a4f96] to-[#1e3a70] px-4 py-2 text-xs font-semibold text-white transition hover:from-[#4a72c4] hover:to-[#2a4f96]"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#2a4f96] to-[#1e3a70] px-4 py-2 text-xs font-semibold text-white transition hover:from-[#4a72c4] hover:to-[#2a4f96]"
             >
               <Plus className="h-3.5 w-3.5" />
               Start a new chat
@@ -266,7 +266,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
                 className={cn(
                   "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition",
                   c.id === chatId
-                    ? "bg-linear-to-r from-[#1e3a70] to-[#162d58] text-white"
+                    ? "bg-gradient-to-r from-[#1e3a70] to-[#162d58] text-white"
                     : "text-[#7aa0d8] hover:bg-[#0f2040] hover:text-white"
                 )}
               >
@@ -282,10 +282,10 @@ export function ChatView({ chatId }: { chatId?: string }) {
 
   /* ── Render ── */
   return (
-    <div className="flex min-h-0 bg-[#050d1a]">
+    <div className="flex h-full min-h-0 w-full overflow-hidden bg-[#050d1a]">
 
       {/* ── Desktop sidebar ── */}
-      <aside className="hidden lg:flex lg:w-80 shrink-0 border-r border-[#162d58] bg-[#0a1628]">
+      <aside className="hidden lg:flex lg:w-80 shrink-0 border-r border-[#162d58]">
         {SidebarPanel}
       </aside>
 
@@ -305,7 +305,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
       )}
 
       {/* ── Main chat area ── */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 
         {/* Top bar */}
         <div className="flex shrink-0 items-center gap-3 border-b border-[#162d58] bg-[#0a1628] px-4 py-3">
@@ -318,7 +318,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
           </button>
 
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-[#2a4f96] to-[#162d58]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#2a4f96] to-[#162d58]">
               <Scale className="h-3.5 w-3.5 text-[#c9a84c]" />
             </div>
             <div>
@@ -345,7 +345,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
             /* Welcome / empty state */
             <div className="mx-auto max-w-2xl">
               <div className="rounded-2xl border border-[#162d58] bg-[#0a1628] p-8 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-[#2a4f96] to-[#162d58] shadow-lg shadow-[#2a4f96]/20">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2a4f96] to-[#162d58] shadow-lg shadow-[#2a4f96]/20">
                   <Scale className="h-8 w-8 text-[#c9a84c]" />
                 </div>
                 <h2 className="mt-5 text-xl font-bold text-white">How can JurisAI help you?</h2>
@@ -411,7 +411,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
               <button
                 onClick={() => void onSend()}
                 disabled={!input.trim() || isStreaming}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-[#2a4f96] to-[#1e3a70] text-white shadow-lg transition hover:from-[#4a72c4] hover:to-[#2a4f96] disabled:opacity-40"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#2a4f96] to-[#1e3a70] text-white shadow-lg transition hover:from-[#4a72c4] hover:to-[#2a4f96] disabled:opacity-40"
               >
                 {isStreaming ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
