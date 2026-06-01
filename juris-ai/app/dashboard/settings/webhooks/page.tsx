@@ -12,8 +12,6 @@ export default function WebhooksPage() {
 
   const allEvents = ["AGENT_COMPLETED", "AGENT_FAILED", "WORKFLOW_COMPLETED", "WORKFLOW_FAILED", "API_KEY_CREATED", "API_KEY_REVOKED", "USER_JOINED", "USER_LEFT"];
 
-  useEffect(() => { loadWebhooks(); }, []);
-
   const loadWebhooks = () =>
     fetch("/api/v1/webhooks")
       .then(async (r) => {
@@ -24,6 +22,9 @@ export default function WebhooksPage() {
       .then((data) => setWebhooks(Array.isArray(data) ? data : []))
       .catch((err) => { console.error("[Webhooks]", err); setWebhooks([]); })
       .finally(() => setLoading(false));
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadWebhooks(); }, []);
 
   const createWebhook = async () => {
     const res = await fetch("/api/v1/webhooks", {

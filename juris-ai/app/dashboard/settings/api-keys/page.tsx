@@ -13,9 +13,10 @@ export default function ApiKeysPage() {
 
   const scopes = ["READ", "WRITE", "ADMIN", "AGENT_EXECUTE", "WORKFLOW_EXECUTE"];
 
-  useEffect(() => { loadKeys(); }, []);
-
   const loadKeys = () => fetch("/api/v1/api-keys").then(r => r.json()).then(data => setKeys(Array.isArray(data) ? data : [])).finally(() => setLoading(false));
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadKeys(); }, []);
 
   const createKey = async () => {
     const res = await fetch("/api/v1/api-keys", {
