@@ -6,9 +6,28 @@ import { ArrowLeft, Play, GitBranch, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+interface Variant {
+  score?: number;
+  content?: string;
+  runs?: number;
+  avgLatency?: number;
+  avgTokens?: number;
+}
+
+interface Experiment {
+  id: string;
+  name: string;
+  status: string;
+  description?: string;
+  totalRuns?: number;
+  variants?: Variant[];
+  avgScore?: number;
+  confidence?: number;
+}
+
 export default function ExperimentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [exp, setExp] = useState<any>(null);
+  const [exp, setExp] = useState<Experiment | null>(null);
 
   useEffect(() => {
     fetch(`/api/v1/prompts/experiments/${id}`).then(r => r.json()).then(setExp);
@@ -58,7 +77,7 @@ export default function ExperimentDetailPage() {
       <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
         <h3 className="mb-4 font-semibold text-gray-900 dark:text-white">Variants</h3>
         <div className="space-y-4">
-          {exp.variants?.map((v: any, i: number) => (
+          {exp.variants?.map((v: Variant, i: number) => (
             <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
               className="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800">
               <div className="flex items-center justify-between">

@@ -126,7 +126,7 @@ export default function Home() {
               <div className="space-y-3">
                 <div className="flex justify-end">
                   <div className="max-w-xs rounded-2xl rounded-tr-sm bg-[#162d58] px-4 py-3">
-                    <p className="text-sm text-white">"I need help filing an FIR for a cybercrime case."</p>
+                    <p className="text-sm text-white">{'"I need help filing an FIR for a cybercrime case."'}</p>
                   </div>
                 </div>
                 <div className="flex justify-start">

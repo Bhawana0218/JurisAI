@@ -24,7 +24,7 @@ export default function ContactPage() {
         <div className="rounded-xl border border-green-200 bg-green-50 p-8 text-center dark:border-green-800 dark:bg-green-950">
           <Mail className="mx-auto mb-4 h-10 w-10 text-green-600" />
           <h2 className="text-xl font-semibold text-green-800 dark:text-green-200">Message Sent!</h2>
-          <p className="mt-2 text-green-700 dark:text-green-300">We'll get back to you within 24 hours.</p>
+          <p className="mt-2 text-green-700 dark:text-green-300">We&apos;ll get back to you within 24 hours.</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">

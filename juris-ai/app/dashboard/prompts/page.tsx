@@ -4,8 +4,24 @@ import { useState, useEffect } from "react";
 import { FlaskConical, Plus, GitFork, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 
+interface Variant {
+  score?: number;
+  runs?: number;
+}
+
+interface Experiment {
+  id: string;
+  name: string;
+  status: string;
+  description?: string;
+  totalRuns?: number;
+  variants?: Variant[];
+  createdAt: string;
+  winningVariant?: string;
+}
+
 export default function PromptsPage() {
-  const [experiments, setExperiments] = useState<any[]>([]);
+  const [experiments, setExperiments] = useState<Experiment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -79,7 +95,7 @@ export default function PromptsPage() {
                 </div>
               </div>
               <div className="mt-4 flex gap-2">
-                {exp.variants?.map((v: any, vi: number) => (
+                {exp.variants?.map((v: Variant, vi: number) => (
                   <div key={vi}
                     className="flex-1 rounded-lg border border-gray-100 bg-gray-50 p-2 text-center dark:border-gray-800 dark:bg-gray-800">
                     <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Variant {vi + 1}</p>

@@ -1,11 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, Grid3X3, List } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { AgentCard } from "@/components/marketplace/AgentCard";
 
+interface Agent {
+  id: string;
+  name: string;
+  shortDescription?: string;
+  description: string;
+  category: string;
+  pricingModel: string;
+  price: number;
+  rating: number;
+  totalInstalls: number;
+  author?: { name?: string; image?: string };
+  tags: string[];
+}
+
 export default function MarketplacePage() {
-  const [agents, setAgents] = useState<any[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");

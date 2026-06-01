@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { WebhookEvent } from "@prisma/client";
 import { gateway, type GatewayContext } from "@/platform/api-gateway/gateway";
 import { aiRuntime } from "@/platform/ai-runtime/ai-runtime";
 import { marketplaceService } from "@/platform/agent-marketplace/marketplace-service";
 import { webhookEngine } from "@/platform/webhooks/webhook-engine";
-import { enterpriseRbac } from "@/platform/enterprise/rbac/enterprise-rbac";
 import { metrics } from "@/platform/observability/metrics/metrics-collector";
 
 gateway.register({
@@ -26,7 +26,7 @@ gateway.register({
       organizationId: ctx.organizationId,
     });
 
-    await webhookEngine.dispatch("AGENT_EXECUTED" as any, {
+    await webhookEngine.dispatch("AGENT_EXECUTED" as WebhookEvent, {
       executionId: result.id,
       agentType,
       status: "completed",

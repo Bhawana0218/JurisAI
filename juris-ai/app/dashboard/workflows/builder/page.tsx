@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, GripVertical, Trash2, Save, Play, ChevronRight, Zap, Brain, Search, FileText, Mail, Globe, Database, Clock } from "lucide-react";
+import { Plus, GripVertical, Trash2, Save, Play, ChevronRight, Zap, Brain, Search, FileText, Mail, Globe, Database, Clock, type LucideIcon } from "lucide-react";
+
+type WorkflowStep = {
+  id: string;
+  type: string;
+  label: string;
+};
 
 const stepTypes = [
   { id: "llm_call", label: "LLM Call", icon: Brain, color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950" },
@@ -16,7 +22,7 @@ const stepTypes = [
 ];
 
 export default function WorkflowBuilderPage() {
-  const [steps, setSteps] = useState<any[]>([]);
+  const [steps, setSteps] = useState<WorkflowStep[]>([]);
   const [name, setName] = useState("Untitled Workflow");
   const [selectedStep, setSelectedStep] = useState<number | null>(null);
 
@@ -143,6 +149,6 @@ export default function WorkflowBuilderPage() {
   );
 }
 
-function DynamicIcon({ icon: Icon, className }: { icon: any; className: string }) {
+function DynamicIcon({ icon: Icon, className }: { icon: LucideIcon; className: string }) {
   return <Icon className={className} />;
 }

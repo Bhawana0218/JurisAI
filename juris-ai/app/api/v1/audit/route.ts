@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { AuditEventType } from "@prisma/client";
 import { gateway, type GatewayContext } from "@/platform/api-gateway/gateway";
 import { auditMiddleware } from "@/platform/api-gateway/middleware/audit-middleware";
-import { enterpriseRbac } from "@/platform/enterprise/rbac/enterprise-rbac";
 
 gateway.register({
   path: "/audit/logs",
@@ -11,7 +11,7 @@ gateway.register({
     const url = new URL(req.url);
     const logs = await auditMiddleware.query({
       organizationId: ctx.organizationId!,
-      eventTypes: url.searchParams.getAll("eventType") as any,
+      eventTypes: url.searchParams.getAll("eventType") as AuditEventType[],
       startDate: url.searchParams.get("startDate") ? new Date(url.searchParams.get("startDate")!) : undefined,
       endDate: url.searchParams.get("endDate") ? new Date(url.searchParams.get("endDate")!) : undefined,
       actorId: url.searchParams.get("actorId") || undefined,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { AgentCategory, AgentPricingModel } from "@prisma/client";
 import { gateway, type GatewayContext } from "@/platform/api-gateway/gateway";
 import { marketplaceService } from "@/platform/agent-marketplace/marketplace-service";
 
@@ -10,8 +11,8 @@ gateway.register({
     const url = new URL(req.url);
     const params = {
       query: url.searchParams.get("q") || undefined,
-      category: url.searchParams.get("category") as any || undefined,
-      pricingModel: url.searchParams.get("pricing") as any || undefined,
+      category: url.searchParams.get("category") as AgentCategory || undefined,
+      pricingModel: url.searchParams.get("pricing") as AgentPricingModel || undefined,
       limit: parseInt(url.searchParams.get("limit") || "20"),
       offset: parseInt(url.searchParams.get("offset") || "0"),
     };

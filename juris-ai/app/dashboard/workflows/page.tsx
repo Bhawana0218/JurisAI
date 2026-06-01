@@ -2,11 +2,23 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Play, Pause, Workflow, MoreHorizontal } from "lucide-react";
+import { Plus, Play, Workflow, MoreHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 
+type WorkflowListItem = {
+  id: string;
+  name: string;
+  status: string;
+  description?: string;
+  version: number;
+  _count?: {
+    steps: number;
+    executions: number;
+  };
+};
+
 export default function WorkflowsPage() {
-  const [workflows, setWorkflows] = useState<any[]>([]);
+  const [workflows, setWorkflows] = useState<WorkflowListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

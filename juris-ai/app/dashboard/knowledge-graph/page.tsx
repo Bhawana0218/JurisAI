@@ -3,8 +3,15 @@
 import { useState, useEffect } from "react";
 import { Network, Search, GitBranch, Share2, Layers } from "lucide-react";
 
+interface KnowledgeGraphStats {
+  totalNodes: number;
+  totalEdges: number;
+  nodeTypes: number;
+  nodeTypeBreakdown?: Record<string, number>;
+}
+
 export default function KnowledgeGraphPage() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<KnowledgeGraphStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
 

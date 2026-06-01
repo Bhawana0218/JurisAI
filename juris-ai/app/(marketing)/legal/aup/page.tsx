@@ -12,7 +12,7 @@ export default function AupPage() {
       <div className="mt-8 space-y-6 text-sm text-gray-600 leading-relaxed dark:text-gray-400">
         <p>This Acceptable Use Policy defines acceptable practices for using JurisAI services.</p>
         <p><strong>Prohibited Activities</strong><br/>You may not use JurisAI for any illegal activity, to generate misleading legal content, or to bypass legal procedures.</p>
-        <p><strong>Content Restrictions</strong><br/>Do not submit content that violates others' intellectual property rights or contains malicious code.</p>
+        <p><strong>Content Restrictions</strong><br/>Do not submit content that violates others&apos; intellectual property rights or contains malicious code.</p>
         <p><strong>Rate Limits</strong><br/>Automated scraping or excessive API calls beyond plan limits is prohibited.</p>
         <p><strong>Reporting Violations</strong><br/>Report violations to abuse@jurisai.io.</p>
       </div>

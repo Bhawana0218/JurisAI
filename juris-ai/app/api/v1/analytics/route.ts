@@ -13,7 +13,7 @@ gateway.register({
       organizationId: ctx.organizationId,
       startDate: url.searchParams.get("startDate") ? new Date(url.searchParams.get("startDate")!) : undefined,
       endDate: url.searchParams.get("endDate") ? new Date(url.searchParams.get("endDate")!) : undefined,
-      granularity: (url.searchParams.get("granularity") as any) || "day",
+      granularity: (url.searchParams.get("granularity") as "hour" | "day" | "week" | "month") || "day",
     });
     return NextResponse.json(usage);
   },

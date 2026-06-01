@@ -4,7 +4,7 @@ import {
   convertToModelMessages,
   type UIMessage,
 } from "ai";
-import type { AgentType } from "@prisma/client";
+import type { AgentType, AIModel } from "@prisma/client";
 
 import { auth } from "@/auth";
 import { orchestrateAgents, postChatMemoryUpdate } from "@/ai/agents/orchestrator";
@@ -194,7 +194,7 @@ export async function POST(req: Request) {
             query: userText,
             assistantOutput: textContent,
             retrievedCitations: orchestration.citations,
-            modelUsed: "GPT_4_1_MINI" as any,
+            modelUsed: "GPT_4_1_MINI" as AIModel,
             retrievalTooling: { topK: orchestration.citations?.length ?? 0 },
           });
         } catch (persistError) {

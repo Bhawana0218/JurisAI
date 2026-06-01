@@ -139,8 +139,8 @@ export function ChatView({ chatId }: { chatId?: string }) {
           ? { ...c, lastMessageAt: new Date().toISOString(), title: c.title === "New conversation" && userText.length > 50 ? userText.slice(0, 50) + "..." : c.title }
           : c
       ));
-    } catch (e: any) {
-      setError(e?.message ?? "Something went wrong");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
       setIsStreaming(false);
     }

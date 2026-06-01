@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shield, Plus, CheckCircle, Trash2 } from "lucide-react";
+import { Shield, Plus, CheckCircle } from "lucide-react";
+
+interface SsoConnection {
+  id: string;
+  provider: string;
+  domains?: string[];
+  enabled: boolean;
+}
 
 export default function SsoPage() {
-  const [connections, setConnections] = useState<any[]>([]);
+  const [connections, setConnections] = useState<SsoConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -114,7 +121,7 @@ export default function SsoPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {connections.map((c: any) => (
+          {connections.map((c) => (
             <div key={c.id} className="flex items-center justify-between rounded-2xl border border-[#162d58] bg-[#0a1628] p-4">
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-emerald-400" />

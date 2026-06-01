@@ -3,6 +3,16 @@
 import { useState, useEffect } from "react";
 import { FileText, Filter } from "lucide-react";
 
+interface AuditLog {
+  id: string;
+  eventType: string;
+  actor?: { email?: string };
+  actorId?: string;
+  resourceType?: string;
+  ipAddress?: string;
+  createdAt: string;
+}
+
 const EVENT_COLORS: Record<string, string> = {
   USER_LOGIN: "text-emerald-400 bg-emerald-900/30",
   USER_LOGOUT: "text-[#4a72c4] bg-[#162d58]/40",
@@ -16,7 +26,7 @@ const EVENT_COLORS: Record<string, string> = {
 };
 
 export default function AuditPage() {
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
 
@@ -72,7 +82,7 @@ export default function AuditPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((log: any, i) => {
+              {filtered.map((log, i) => {
                 const colorClass = EVENT_COLORS[log.eventType] || "text-[#7aa0d8] bg-[#162d58]/40";
                 return (
                   <tr key={log.id} className={`border-b border-[#0f2040] transition hover:bg-[#0f2040] ${i % 2 === 0 ? "" : "bg-[#050d1a]/30"}`}>

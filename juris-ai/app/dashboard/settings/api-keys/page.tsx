@@ -1,11 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Key, Plus, Copy, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Key, Plus, Copy, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 
+interface ApiKey {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  createdAt: string;
+  scopes: string[];
+  isRevoked: boolean;
+}
+
 export default function ApiKeysPage() {
-  const [keys, setKeys] = useState<any[]>([]);
+  const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewKey, setShowNewKey] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -60,7 +69,7 @@ export default function ApiKeysPage() {
       {showNewKey && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
           <p className="font-medium text-green-800 dark:text-green-200">API Key Created</p>
-          <p className="mt-1 text-sm text-green-700 dark:text-green-300">Copy this key now. You won't be able to see it again.</p>
+          <p className="mt-1 text-sm text-green-700 dark:text-green-300">Copy this key now. You won&apos;t be able to see it again.</p>
           <div className="mt-3 flex items-center gap-2">
             <code className="flex-1 rounded-lg bg-white px-3 py-2 text-sm font-mono dark:bg-gray-900">{showNewKey}</code>
             <button onClick={() => { navigator.clipboard.writeText(showNewKey); }} className="rounded-lg bg-white p-2 text-gray-600 hover:bg-gray-50 dark:bg-gray-900">

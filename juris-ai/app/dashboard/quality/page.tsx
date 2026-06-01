@@ -2,11 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, AlertTriangle, CheckCircle, XCircle, TrendingUp, Clock } from "lucide-react";
+import { Shield, AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
+
+interface Evaluation {
+  id: string;
+  overallScore: number;
+  createdAt: string;
+  passedGate: boolean;
+}
+
+interface QualityStats {
+  avgScore?: number;
+  hallucinationRate?: number;
+  citationAccuracy?: number;
+  evaluationsToday?: number;
+}
 
 export default function QualityPage() {
-  const [evaluations, setEvaluations] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const [stats, setStats] = useState<QualityStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("7d");
 
@@ -77,7 +91,7 @@ export default function QualityPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {evaluations.map((ev: any, i) => (
+            {evaluations.map((ev: Evaluation, i) => (
               <motion.div key={ev.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
                 className="flex items-center justify-between rounded-lg border border-gray-100 p-3 dark:border-gray-800">
                 <div className="flex items-center gap-3">

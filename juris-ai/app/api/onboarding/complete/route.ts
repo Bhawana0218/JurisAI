@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { emailService } from "@/lib/email/email-service";
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
       data: {
         name: workspaceName || `${session.user.name || "User"}'s Workspace`,
         slug: workspaceName?.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now().toString(36),
-        settings: { role, interests } as any,
+        settings: { role, interests } as Prisma.InputJsonValue,
         members: {
           create: { userId: session.user.id, role: "OWNER" },
         },
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ orgId: org.id, slug: org.slug });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

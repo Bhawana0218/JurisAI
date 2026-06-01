@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { AgentCategory } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
       where: {
         status: "APPROVED",
         ...(q ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { description: { contains: q, mode: "insensitive" } }] } : {}),
-        ...(category ? { category: category as any } : {}),
+        ...(category ? { category: category as AgentCategory } : {}),
       },
       take: limit,
       skip: offset,
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
       where: {
         status: "APPROVED",
         ...(q ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { description: { contains: q, mode: "insensitive" } }] } : {}),
-        ...(category ? { category: category as any } : {}),
+        ...(category ? { category: category as AgentCategory } : {}),
       },
     });
 

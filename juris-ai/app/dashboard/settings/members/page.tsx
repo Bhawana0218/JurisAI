@@ -2,8 +2,16 @@
 
 import { useState } from "react";
 import { Users, UserPlus, Crown, Shield, Eye } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const ROLE_STYLES: Record<string, { label: string; color: string; icon: any }> = {
+interface Member {
+  id: string;
+  role: string;
+  user?: { name?: string; email?: string };
+  joinedAt: string;
+}
+
+const ROLE_STYLES: Record<string, { label: string; color: string; icon: LucideIcon }> = {
   OWNER:  { label: "Owner",  color: "text-[#c9a84c] bg-[#c9a84c]/10",  icon: Crown },
   ADMIN:  { label: "Admin",  color: "text-[#4a72c4] bg-[#162d58]/40",  icon: Shield },
   MEMBER: { label: "Member", color: "text-emerald-400 bg-emerald-900/30", icon: Users },
@@ -16,7 +24,7 @@ export default function MembersPage() {
   const [role, setRole] = useState("MEMBER");
 
   // Placeholder members — replace with real fetch when org membership API is ready
-  const members: any[] = [];
+  const members: Member[] = [];
 
   return (
     <div className="space-y-8">
@@ -80,7 +88,7 @@ export default function MembersPage() {
               </tr>
             </thead>
             <tbody>
-              {members.map((m: any) => {
+              {members.map((m) => {
                 const roleInfo = ROLE_STYLES[m.role] ?? ROLE_STYLES.MEMBER;
                 const RoleIcon = roleInfo.icon;
                 return (

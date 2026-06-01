@@ -3,6 +3,15 @@
 import { useState, useEffect } from "react";
 import { Gavel, ShieldCheck, ShieldAlert, ShieldX, Plus } from "lucide-react";
 
+interface GovernanceRule {
+  id: string;
+  name: string;
+  ruleType: string;
+  priority: number;
+  action: string;
+  enabled: boolean;
+}
+
 const ACTION_STYLES: Record<string, string> = {
   ALLOW:    "bg-emerald-900/40 text-emerald-400",
   BLOCK:    "bg-red-900/40 text-red-400",
@@ -14,7 +23,7 @@ const ACTION_STYLES: Record<string, string> = {
 };
 
 export default function GovernancePage() {
-  const [rules, setRules] = useState<any[]>([]);
+  const [rules, setRules] = useState<GovernanceRule[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -72,7 +81,7 @@ export default function GovernancePage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {rules.map((rule: any) => (
+          {rules.map((rule) => (
             <div key={rule.id} className="flex items-center justify-between rounded-2xl border border-[#162d58] bg-[#0a1628] p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0f2040]">

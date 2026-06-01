@@ -1,11 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Webhook, Plus, Play, Pause, Trash2, Copy } from "lucide-react";
+import { Webhook, Plus, Play, Pause, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 
+interface WebhookEntry {
+  id: string;
+  url: string;
+  events: string[];
+  isActive: boolean;
+}
+
 export default function WebhooksPage() {
-  const [webhooks, setWebhooks] = useState<any[]>([]);
+  const [webhooks, setWebhooks] = useState<WebhookEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ url: "", events: ["AGENT_COMPLETED"] as string[] });

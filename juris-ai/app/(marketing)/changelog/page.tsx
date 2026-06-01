@@ -1,4 +1,4 @@
-import { ArrowRight, Rocket, Plus, Bug, Zap } from "lucide-react";
+import { ArrowRight, Rocket, Plus, Bug, Zap, type LucideIcon } from "lucide-react";
 
 const releases = [
   {
@@ -37,7 +37,7 @@ export default function ChangelogPage() {
     bugfix: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
   };
 
-  const typeIcons: Record<string, any> = {
+  const typeIcons: Record<string, LucideIcon> = {
     feature: Plus,
     improvement: Zap,
     bugfix: Bug,
