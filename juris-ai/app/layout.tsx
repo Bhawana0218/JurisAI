@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://jurisai.vercel.app"),
   title: "JurisAI — AI-Powered Legal Intelligence Platform",
   description:
     "JurisAI is an AI-native legal intelligence platform providing multilingual legal assistance, document analysis, case management, and enterprise-grade AI workflows for citizens, law firms, and enterprises.",
@@ -34,6 +35,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  minimumScale: 1,
+};
+
 // Root layout intentionally does NOT wrap children in SessionProvider.
 // SessionProvider (next-auth/react) uses useState and must be a client
 // component. Wrapping the entire app causes blank flashes on marketing and
@@ -52,9 +59,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased overflow-x-hidden`}
     >
-      <body className="bg-[#050d1a] text-white h-full">
+      <body className="bg-[#050d1a] text-white h-full overflow-x-hidden">
         {children}
       </body>
     </html>

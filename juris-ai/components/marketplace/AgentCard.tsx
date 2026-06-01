@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Bot, Star, Download, DollarSign } from "lucide-react";
+import { Bot, Star, Download } from "lucide-react";
 
 type AgentCardProps = {
   agent: {

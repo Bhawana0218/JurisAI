@@ -24,7 +24,7 @@ export function TopicCharts({ agentDistribution }: TopicChartsProps) {
   return (
     <div className="rounded-2xl border border-[#162d58] bg-[#0a1628] p-5">
       <div className="flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#2a4f96] to-[#162d58]">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-[#2a4f96] to-[#162d58]">
           <BarChart3 className="h-3.5 w-3.5 text-[#c9a84c]" />
         </div>
         <div className="text-sm font-semibold text-white">Agent Usage Distribution</div>
@@ -46,7 +46,7 @@ export function TopicCharts({ agentDistribution }: TopicChartsProps) {
                 </div>
                 <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#0f2040]">
                   <div
-                    className={`h-full rounded-full bg-gradient-to-r ${AGENT_COLORS[idx % AGENT_COLORS.length]} transition-all duration-700`}
+                    className={`h-full rounded-full bg-linear-to-r ${AGENT_COLORS[idx % AGENT_COLORS.length]} transition-all duration-700`}
                     style={{ width: `${percentage}%` }}
                   />
                 </div>

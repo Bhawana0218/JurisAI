@@ -104,7 +104,7 @@ export default function AnalyticsPage() {
                   <div className="w-32 shrink-0 text-xs text-[#7aa0d8]">{a.agent}</div>
                   <div className="flex-1 rounded-full bg-[#0f2040] h-2">
                     <div
-                      className="h-2 rounded-full bg-gradient-to-r from-[#2a4f96] to-[#4a72c4]"
+                      className="h-2 rounded-full bg-linear-to-r from-[#2a4f96] to-[#4a72c4]"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -133,7 +133,7 @@ export default function AnalyticsPage() {
               return (
                 <div key={d.date} className="group relative flex-1" title={`${d.date}: ${d.count}`}>
                   <div
-                    className="w-full rounded-t bg-gradient-to-t from-[#2a4f96] to-[#4a72c4] transition-all group-hover:from-[#c9a84c] group-hover:to-[#e8c97a]"
+                    className="w-full rounded-t bg-linear-to-t from-[#2a4f96] to-[#4a72c4] transition-all group-hover:from-[#c9a84c] group-hover:to-[#e8c97a]"
                     style={{ height: `${h}%` }}
                   />
                 </div>

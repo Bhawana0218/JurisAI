@@ -13,7 +13,7 @@ gateway.register({
   rateLimit: { max: 30, window: 60000 },
   handler: async (req: NextRequest, ctx: GatewayContext) => {
     const body = await req.json();
-    const { agentType, query, documentIds, model } = body;
+    const { agentType, query, model } = body;
 
     if (!query) return NextResponse.json({ error: "Query is required" }, { status: 400 });
 
@@ -43,7 +43,7 @@ gateway.register({
   path: "/agents",
   methods: ["GET"],
   scopes: ["READ"],
-  handler: async (_req: NextRequest, ctx: GatewayContext) => {
+  handler: async (_req: NextRequest, _ctx: GatewayContext) => {
     const { agents } = await marketplaceService.searchAgents({ limit: 50 });
     return NextResponse.json(agents);
   },
@@ -53,7 +53,7 @@ gateway.register({
   path: "/agents/:id",
   methods: ["GET"],
   scopes: ["READ"],
-  handler: async (_req: NextRequest, ctx: GatewayContext) => {
+  handler: async (_req: NextRequest, _ctx: GatewayContext) => {
     const agentId = _req.nextUrl.pathname.split("/").pop()!;
     const agent = await marketplaceService.getAgentDetails(agentId);
     if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 });

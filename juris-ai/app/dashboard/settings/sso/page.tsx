@@ -42,7 +42,7 @@ export default function SsoPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Single Sign-On</h1>
           <p className="mt-1 text-sm text-[#7aa0d8]">Connect your identity provider for seamless team access</p>
@@ -100,7 +100,7 @@ export default function SsoPage() {
               />
             </div>
           </div>
-          <div className="mt-5 flex gap-3">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <button onClick={save} disabled={saving} className="rounded-xl bg-[#2a4f96] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1e3a70] disabled:opacity-50">
               {saving ? "Saving…" : "Save Configuration"}
             </button>
@@ -122,7 +122,7 @@ export default function SsoPage() {
       ) : (
         <div className="space-y-3">
           {connections.map((c) => (
-            <div key={c.id} className="flex items-center justify-between rounded-2xl border border-[#162d58] bg-[#0a1628] p-4">
+            <div key={c.id} className="flex flex-col gap-4 rounded-2xl border border-[#162d58] bg-[#0a1628] p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-emerald-400" />
                 <div>

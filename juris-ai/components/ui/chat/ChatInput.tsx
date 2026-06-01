@@ -43,14 +43,17 @@ export function ChatInput({ value, onChange, onSend, isLoading }: ChatInputProps
           className="w-full resize-none rounded-xl border border-[#162d58] bg-[#0a1628] px-4 py-3 text-sm text-white placeholder-[#2a4f96] outline-none transition focus:border-[#4a72c4] focus:ring-1 focus:ring-[#4a72c4]/40"
         />
         <div className="mt-1.5 text-[11px] text-[#2a4f96]">
-          Press <span className="font-medium text-[#4a72c4]">Ctrl/⌘ + Enter</span> to send
+          <span className="hidden sm:inline">
+            Press <span className="font-medium text-[#4a72c4]">Ctrl/⌘ + Enter</span> to send
+          </span>
+          <span className="sm:hidden">Tap Send to submit</span>
         </div>
       </div>
 
       <button
         type="submit"
         disabled={!canSend}
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#2a4f96] to-[#1e3a70] text-white shadow-lg shadow-[#2a4f96]/20 transition hover:from-[#4a72c4] hover:to-[#2a4f96] disabled:opacity-40"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-[#2a4f96] to-[#1e3a70] text-white shadow-lg shadow-[#2a4f96]/20 transition hover:from-[#4a72c4] hover:to-[#2a4f96] disabled:opacity-40"
         aria-label="Send message"
       >
         {isLoading ? (

@@ -24,7 +24,6 @@ export default function ApiKeysPage() {
 
   const loadKeys = () => fetch("/api/v1/api-keys").then(r => r.json()).then(data => setKeys(Array.isArray(data) ? data : [])).finally(() => setLoading(false));
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadKeys(); }, []);
 
   const createKey = async () => {
@@ -56,7 +55,7 @@ export default function ApiKeysPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">API Keys</h1>
           <p className="mt-1 text-sm text-gray-500">Manage API keys for programmatic access</p>
@@ -111,21 +110,23 @@ export default function ApiKeysPage() {
         <div className="space-y-3">
           {keys.map((key, i) => (
             <motion.div key={key.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-              <div className="flex items-center gap-3">
-                <Key className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-white">{key.name}</p>
-                  <p className="text-xs text-gray-400">{key.keyPrefix}... | Created {new Date(key.createdAt).toLocaleDateString()}</p>
+              className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3">
+                  <Key className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">{key.name}</p>
+                    <p className="text-xs text-gray-400">{key.keyPrefix}... | Created {new Date(key.createdAt).toLocaleDateString()}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">{key.scopes?.join(", ")}</span>
-                {!key.isRevoked && (
-                  <button onClick={() => revokeKey(key.id)} className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600" title="Revoke">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">{key.scopes?.join(", ")}</span>
+                  {!key.isRevoked && (
+                    <button onClick={() => revokeKey(key.id)} className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600" title="Revoke">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))}

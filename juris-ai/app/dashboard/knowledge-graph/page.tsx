@@ -75,7 +75,7 @@ export default function KnowledgeGraphPage() {
       {/* Graph visualization area */}
       <div className="rounded-2xl border border-[#162d58] bg-[#0a1628] p-8">
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#162d58] to-[#0f2040] shadow-lg">
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-br from-[#162d58] to-[#0f2040] shadow-lg">
             <Network className="h-10 w-10 text-[#4a72c4]" />
           </div>
           <h3 className="text-lg font-semibold text-white">Knowledge Graph Visualization</h3>

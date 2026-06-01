@@ -8,17 +8,19 @@ import { cn } from "@/lib/utils";
 export type ChatSidebarProps = {
   chats: Array<{ id: string; title: string }>;
   onNewChat: () => void;
+  onNavigate?: () => void;
+  onClose?: () => void;
   currentChatId?: string;
 };
 
-export function ChatSidebar({ chats, onNewChat, currentChatId }: ChatSidebarProps) {
+export function ChatSidebar({ chats, onNewChat, onNavigate, onClose, currentChatId }: ChatSidebarProps) {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="border-b border-[#162d58] p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#2a4f96] to-[#162d58]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-[#2a4f96] to-[#162d58]">
               <Scale className="h-3.5 w-3.5 text-[#c9a84c]" />
             </div>
             <div>
@@ -26,14 +28,27 @@ export function ChatSidebar({ chats, onNewChat, currentChatId }: ChatSidebarProp
               <div className="text-[10px] text-[#4a72c4]">Legal intelligence chats</div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onNewChat}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#162d58] bg-[#0f2040] text-[#7aa0d8] transition hover:border-[#2a4f96] hover:bg-[#162d58] hover:text-white"
-            aria-label="New chat"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                onNewChat();
+                onNavigate?.();
+              }}
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#162d58] bg-[#0f2040] text-[#7aa0d8] transition hover:border-[#2a4f96] hover:bg-[#162d58] hover:text-white"
+              aria-label="New chat"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-8 items-center justify-center rounded-xl border border-[#162d58] bg-[#0f2040] px-3 text-xs font-medium text-[#7aa0d8] transition hover:border-[#2a4f96] hover:bg-[#162d58] hover:text-white md:hidden"
+              aria-label="Close conversations"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
 
@@ -45,10 +60,11 @@ export function ChatSidebar({ chats, onNewChat, currentChatId }: ChatSidebarProp
               <Link
                 key={c.id}
                 href={`/dashboard/chat/${encodeURIComponent(c.id)}`}
+                onClick={() => onNavigate?.()}
                 className={cn(
                   "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition",
                   c.id === currentChatId
-                    ? "bg-gradient-to-r from-[#1e3a70] to-[#162d58] text-white"
+                    ? "bg-linear-to-r from-[#1e3a70] to-[#162d58] text-white"
                     : "text-[#7aa0d8] hover:bg-[#0f2040] hover:text-white"
                 )}
               >

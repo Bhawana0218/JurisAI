@@ -30,7 +30,6 @@ export default function WebhooksPage() {
       .catch((err) => { console.error("[Webhooks]", err); setWebhooks([]); })
       .finally(() => setLoading(false));
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadWebhooks(); }, []);
 
   const createWebhook = async () => {
@@ -65,7 +64,7 @@ export default function WebhooksPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Webhooks</h1>
           <p className="mt-1 text-sm text-gray-500">Send real-time events to your endpoints</p>
@@ -87,7 +86,7 @@ export default function WebhooksPage() {
               ))}
             </div>
           </div>
-          <div className="mt-6 flex gap-3">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <button onClick={createWebhook} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">Create</button>
             <button onClick={() => setShowCreate(false)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300">Cancel</button>
           </div>
@@ -106,8 +105,8 @@ export default function WebhooksPage() {
         <div className="space-y-3">
           {webhooks.map((wh, i) => (
             <motion.div key={wh.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-              <div className="flex items-center gap-3">
+              className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-3 md:items-center">
                 <Webhook className="h-5 w-5 text-gray-400" />
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">{wh.url}</p>

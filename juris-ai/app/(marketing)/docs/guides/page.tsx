@@ -1,4 +1,4 @@
-import { ArrowLeft, Book, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const guides = [

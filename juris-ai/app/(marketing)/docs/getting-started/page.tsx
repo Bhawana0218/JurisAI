@@ -1,4 +1,4 @@
-import { ArrowLeft, Terminal, Key, Rocket, Code } from "lucide-react";
+import { ArrowLeft, Terminal, Key, Code } from "lucide-react";
 import Link from "next/link";
 
 export default function GettingStartedPage() {

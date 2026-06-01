@@ -6,3 +6,5 @@
 
 packages:
   - "juris-ai"
+  - "apps/*"
+  - "packages/*"

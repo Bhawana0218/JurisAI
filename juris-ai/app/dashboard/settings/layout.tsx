@@ -18,8 +18,27 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
 
   return (
-    <div className="flex gap-8">
-      <nav className="w-56 shrink-0">
+    <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+      {/* Mobile: horizontal scrollable tabs */}
+      <nav className="flex lg:hidden -mx-4 px-4 gap-1 overflow-x-auto scrollbar-none border-b border-gray-200 dark:border-gray-800 pb-2">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link key={item.href} href={item.href}
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-all ${
+                isActive
+                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+              }`}>
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Desktop: vertical sidebar */}
+      <nav className="hidden lg:block w-56 shrink-0">
         <div className="sticky top-24 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -37,6 +56,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
           })}
         </div>
       </nav>
+
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { gateway, type GatewayContext } from "@/platform/api-gateway/gateway";
 import { governanceEngine } from "@/platform/governance/governance-engine";
-import { GovernanceAction } from "@prisma/client";
 
 gateway.register({
   path: "/governance/check",

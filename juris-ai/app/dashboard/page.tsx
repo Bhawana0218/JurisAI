@@ -51,7 +51,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/dashboard/chat"
-          className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#2a4f96] to-[#1e3a70] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#2a4f96]/20 transition hover:from-[#4a72c4] hover:to-[#2a4f96]"
+          className="group flex items-center gap-2 rounded-xl bg-linear-to-r from-[#2a4f96] to-[#1e3a70] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#2a4f96]/20 transition hover:from-[#4a72c4] hover:to-[#2a4f96]"
         >
           <MessageSquare className="h-4 w-4" />
           Open Chat

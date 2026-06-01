@@ -173,7 +173,7 @@ export function OnboardingWizard() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 p-4 dark:from-gray-950 dark:to-gray-900">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-indigo-50 to-purple-50 p-4 dark:from-gray-950 dark:to-gray-900">
       <div className="w-full max-w-lg">
         {/* progress */}
         <div className="mb-8 flex items-center justify-center gap-2">
@@ -220,7 +220,7 @@ export function OnboardingWizard() {
                   type={field.type}
                   placeholder={field.placeholder}
                   value={
-                    (formData as any)[field.name] || ""
+                    (formData as Record<string, unknown>)[field.name] as string || ""
                   }
                   onChange={(e) =>
                     setFormData({

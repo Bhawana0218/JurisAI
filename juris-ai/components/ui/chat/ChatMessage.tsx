@@ -31,14 +31,14 @@ export function ChatMessage({ role, content }: ChatMessageProps) {
   const isUser = role === "user";
 
   return (
-    <div className={cn("flex w-full gap-3", isUser ? "flex-row-reverse" : "flex-row")}>
+    <div className={cn("flex w-full min-w-0 gap-3", isUser ? "flex-row-reverse" : "flex-row")}>
       {/* Avatar */}
       <div
         className={cn(
           "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl",
           isUser
-            ? "bg-gradient-to-br from-[#2a4f96] to-[#162d58]"
-            : "bg-gradient-to-br from-[#c9a84c]/20 to-[#162d58] border border-[#c9a84c]/30"
+            ? "bg-[#2a4f96]"
+            : "bg-[#c9a84c]/20 border border-[#c9a84c]/30"
         )}
       >
         {isUser ? (
@@ -51,9 +51,9 @@ export function ChatMessage({ role, content }: ChatMessageProps) {
       {/* Bubble */}
       <div
         className={cn(
-          "max-w-[78%] rounded-2xl px-4 py-3 text-sm shadow-sm",
+          "max-w-[90%] sm:max-w-[78%] rounded-2xl px-4 py-3 text-sm shadow-sm",
           isUser
-            ? "rounded-tr-sm bg-gradient-to-br from-[#1e3a70] to-[#162d58] text-white"
+            ? "rounded-tr-sm bg-[#1e3a70] text-white"
             : "rounded-tl-sm border border-[#162d58] bg-[#0a1628] text-[#d4e4f7]"
         )}
       >

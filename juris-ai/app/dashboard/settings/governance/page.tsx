@@ -40,7 +40,7 @@ export default function GovernancePage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">AI Governance</h1>
           <p className="mt-1 text-sm text-[#7aa0d8]">Define rules to control, filter, and audit AI responses</p>
@@ -82,7 +82,7 @@ export default function GovernancePage() {
       ) : (
         <div className="space-y-3">
           {rules.map((rule) => (
-            <div key={rule.id} className="flex items-center justify-between rounded-2xl border border-[#162d58] bg-[#0a1628] p-4">
+            <div key={rule.id} className="flex flex-col gap-4 rounded-2xl border border-[#162d58] bg-[#0a1628] p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0f2040]">
                   <Gavel className="h-4 w-4 text-[#4a72c4]" />

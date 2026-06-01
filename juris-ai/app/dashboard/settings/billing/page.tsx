@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, Zap, Users, Building2, CheckCircle } from "lucide-react";
+import { CreditCard, CheckCircle } from "lucide-react";
 
 const plans = [
   {
@@ -48,7 +48,7 @@ export default function BillingPage() {
 
       {/* Current plan */}
       <div className="rounded-2xl border border-[#162d58] bg-[#0a1628] p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#162d58]/40">
               <CreditCard className="h-5 w-5 text-[#4a72c4]" />
@@ -71,7 +71,7 @@ export default function BillingPage() {
             const pct = Math.min(100, Math.round((m.used / m.max) * 100));
             return (
               <div key={m.label} className="rounded-xl bg-[#0f2040] p-4">
-                <div className="mb-2 flex items-center justify-between">
+                <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs text-[#7aa0d8]">{m.label}</p>
                   <p className="text-xs text-[#4a72c4]">{m.used.toLocaleString()} / {m.max.toLocaleString()}</p>
                 </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Puzzle, Search, ArrowUpRight, CheckCircle } from "lucide-react";
+import { Search, ArrowUpRight, CheckCircle } from "lucide-react";
 
 const integrations = [
   { id: "slack", name: "Slack", description: "Receive JurisAI responses in Slack channels", category: "Communication", connected: false, color: "bg-purple-100 text-purple-700" },

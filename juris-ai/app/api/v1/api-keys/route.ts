@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { gateway, type GatewayContext } from "@/platform/api-gateway/gateway";
 import { apiKeyManager } from "@/platform/developer-sdk/keys/api-key-manager";
-import { enterpriseRbac } from "@/platform/enterprise/rbac/enterprise-rbac";
 
 gateway.register({
   path: "/api-keys",
@@ -35,7 +34,7 @@ gateway.register({
   path: "/api-keys/:id/revoke",
   methods: ["POST"],
   scopes: ["API_KEYS_MANAGE", "WRITE"],
-  handler: async (req: NextRequest, ctx: GatewayContext) => {
+  handler: async (req: NextRequest, _ctx: GatewayContext) => {
     const id = req.nextUrl.pathname.split("/")[3];
     await apiKeyManager.revoke(id);
     return NextResponse.json({ success: true });

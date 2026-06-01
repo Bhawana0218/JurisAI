@@ -87,6 +87,31 @@
 }
 
 /* ── Base styles ────────────────────────────────────────────────────────────── */
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   @apply bg-background text-foreground;
+}
+
+/* ── Mobile tap highlight ──────────────────────────────────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #162d58;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a4f96;
 }

@@ -59,7 +59,7 @@ export function AnalyticsCards({
         >
           <div className="flex items-center justify-between">
             <div className="text-xs font-medium text-[#7aa0d8]">{card.label}</div>
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${card.iconBg}`}>
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br ${card.iconBg}`}>
               <card.icon className={`h-4 w-4 ${card.iconColor}`} />
             </div>
           </div>

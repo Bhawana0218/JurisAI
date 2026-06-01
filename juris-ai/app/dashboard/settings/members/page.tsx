@@ -28,7 +28,7 @@ export default function MembersPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Team Members</h1>
           <p className="mt-1 text-sm text-[#7aa0d8]">Manage who has access to your workspace</p>
@@ -44,7 +44,7 @@ export default function MembersPage() {
       {showInvite && (
         <div className="rounded-2xl border border-[#162d58] bg-[#0a1628] p-6">
           <h3 className="mb-4 font-semibold text-white">Invite a Team Member</h3>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 lg:flex-row">
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -78,8 +78,8 @@ export default function MembersPage() {
           <p className="mt-1 text-sm text-[#4a72c4]">Invite colleagues to collaborate on legal workflows</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-[#162d58] bg-[#0a1628]">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-[#162d58] bg-[#0a1628]">
+          <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-[#162d58]">
                 <th className="px-4 py-3 text-left text-xs font-semibold text-[#4a72c4]">Member</th>
@@ -95,7 +95,7 @@ export default function MembersPage() {
                   <tr key={m.id} className="border-b border-[#0f2040] transition hover:bg-[#0f2040]">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#2a4f96] to-[#162d58] text-xs font-bold text-white">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-[#2a4f96] to-[#162d58] text-xs font-bold text-white">
                           {m.user?.name?.[0]?.toUpperCase() ?? "?"}
                         </div>
                         <div>

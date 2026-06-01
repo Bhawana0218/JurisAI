@@ -7,7 +7,7 @@ gateway.register({
   path: "/marketplace/agents",
   methods: ["GET"],
   scopes: ["READ"],
-  handler: async (req: NextRequest, ctx: GatewayContext) => {
+  handler: async (req: NextRequest, _ctx: GatewayContext) => {
     const url = new URL(req.url);
     const params = {
       query: url.searchParams.get("q") || undefined,

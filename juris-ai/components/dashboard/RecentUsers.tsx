@@ -14,7 +14,7 @@ export function RecentUsers({ dailyChats }: RecentUsersProps) {
     <div className="rounded-2xl border border-[#162d58] bg-[#0a1628] p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#2a4f96] to-[#162d58]">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-[#2a4f96] to-[#162d58]">
             <Activity className="h-3.5 w-3.5 text-[#c9a84c]" />
           </div>
           <div className="text-sm font-semibold text-white">Daily Chat Activity</div>
@@ -35,7 +35,7 @@ export function RecentUsers({ dailyChats }: RecentUsersProps) {
                 <div key={day.date} className="flex flex-1 flex-col items-center gap-1.5">
                   <div className="text-[10px] font-medium text-[#7aa0d8]">{day.count}</div>
                   <div
-                    className="w-full rounded-md bg-gradient-to-t from-[#2a4f96] to-[#4a72c4]"
+                    className="w-full rounded-md bg-linear-to-t from-[#2a4f96] to-[#4a72c4]"
                     style={{ height: `${heightPct * 0.6}px` }}
                   />
                   <div className="text-[10px] text-[#4a72c4]">

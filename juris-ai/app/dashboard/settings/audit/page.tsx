@@ -43,7 +43,7 @@ export default function AuditPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Audit Logs</h1>
           <p className="mt-1 text-sm text-[#7aa0d8]">Complete history of actions across your organization</p>
@@ -70,8 +70,8 @@ export default function AuditPage() {
           <p className="mt-1 text-sm text-[#4a72c4]">Actions taken in your workspace will appear here</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-[#162d58] bg-[#0a1628]">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-[#162d58] bg-[#0a1628]">
+          <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-[#162d58]">
                 <th className="px-4 py-3 text-left text-xs font-semibold text-[#4a72c4]">Event</th>

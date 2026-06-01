@@ -43,7 +43,7 @@ gateway.register({
   path: "/webhooks/:id",
   methods: ["DELETE"],
   scopes: ["WEBHOOKS_MANAGE", "WRITE"],
-  handler: async (req: NextRequest, ctx: GatewayContext) => {
+  handler: async (req: NextRequest, _ctx: GatewayContext) => {
     const id = req.nextUrl.pathname.split("/").pop()!;
     await prisma.webhookConfig.delete({ where: { id } });
     return NextResponse.json({ success: true });

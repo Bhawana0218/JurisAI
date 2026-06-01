@@ -22,7 +22,7 @@ export function Hero() {
             className="text-5xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-7xl"
           >
             The{" "}
-            <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               AI-Native
             </span>{" "}
             Legal Platform
@@ -76,7 +76,7 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="mt-16 rounded-2xl border border-gray-200 bg-white/50 p-2 shadow-2xl backdrop-blur dark:border-gray-800 dark:bg-gray-900/50"
         >
-          <div className="aspect-[16/9] rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 flex items-center justify-center text-gray-400">
+          <div className="aspect-[16/9] rounded-xl bg-linear-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 flex items-center justify-center text-gray-400">
             <div className="text-center">
               <div className="text-6xl mb-4">⚖️</div>
               <p className="text-lg font-medium text-gray-600 dark:text-gray-300">JurisAI Platform Dashboard</p>

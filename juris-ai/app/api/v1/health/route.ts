@@ -19,7 +19,6 @@ type HealthStatus = {
 };
 
 export async function GET(_req: NextRequest) {
-  const start = performance.now();
   const checks: HealthStatus["checks"] = {
     database: { status: "unknown" },
     redis: { status: "unknown" },

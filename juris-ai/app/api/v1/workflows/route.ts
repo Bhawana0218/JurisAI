@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { gateway, type GatewayContext } from "@/platform/api-gateway/gateway";
 import { workflowEngine } from "@/platform/workflow-engine/workflow-engine";
-import { enterpriseRbac } from "@/platform/enterprise/rbac/enterprise-rbac";
-import { metrics } from "@/platform/observability/metrics/metrics-collector";
 
 gateway.register({
   path: "/workflows",
@@ -45,7 +43,7 @@ gateway.register({
   path: "/workflows/:id/activate",
   methods: ["POST"],
   scopes: ["WRITE"],
-  handler: async (req: NextRequest, ctx: GatewayContext) => {
+  handler: async (req: NextRequest, _ctx: GatewayContext) => {
     const id = req.nextUrl.pathname.split("/")[3];
     const workflow = await workflowEngine.activateWorkflow(id);
     return NextResponse.json(workflow);

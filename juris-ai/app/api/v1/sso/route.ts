@@ -31,7 +31,7 @@ gateway.register({
   path: "/sso/connections/:id/toggle",
   methods: ["POST"],
   scopes: ["SSO_MANAGE", "WRITE"],
-  handler: async (req: NextRequest, ctx: GatewayContext) => {
+  handler: async (req: NextRequest, _ctx: GatewayContext) => {
     const id = req.nextUrl.pathname.split("/")[4];
     const body = await req.json();
     const connection = await enterpriseSso.toggleConnection(id, body.enabled);
@@ -43,7 +43,7 @@ gateway.register({
   path: "/sso/connections/:id",
   methods: ["DELETE"],
   scopes: ["SSO_MANAGE", "WRITE"],
-  handler: async (req: NextRequest, ctx: GatewayContext) => {
+  handler: async (req: NextRequest, _ctx: GatewayContext) => {
     const id = req.nextUrl.pathname.split("/").pop()!;
     await enterpriseSso.deleteConnection(id);
     return NextResponse.json({ success: true });

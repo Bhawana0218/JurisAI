@@ -80,7 +80,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2a4f96] to-[#162d58] shadow-xl shadow-[#2a4f96]/30">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-[#2a4f96] to-[#162d58] shadow-xl shadow-[#2a4f96]/30">
             <Scale className="h-7 w-7 text-[#c9a84c]" />
           </div>
 
@@ -135,7 +135,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2a4f96] to-[#1e3a70] py-3 text-sm font-semibold text-white transition hover:from-[#4a72c4] disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#2a4f96] to-[#1e3a70] py-3 text-sm font-semibold text-white transition hover:from-[#4a72c4] disabled:opacity-60"
             >
               {loading ? (
                 <>
