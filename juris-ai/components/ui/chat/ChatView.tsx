@@ -282,7 +282,7 @@ export function ChatView({ chatId }: { chatId?: string }) {
 
   /* ── Render ── */
   return (
-    <div className="flex h-full min-h-0 bg-[#050d1a]">
+    <div className="flex h-full min-h-0 gap-6 bg-[#050d1a] p-4">
 
       {/* ── Desktop sidebar ── */}
       <aside className="hidden lg:flex lg:w-[380px] shrink-0 border-r border-[#162d58] bg-[#0a1628]">
